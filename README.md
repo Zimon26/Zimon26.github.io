@@ -34,8 +34,8 @@ padding的简写设置
 padding同样会影响盒子的大小
 在块级元素未设置宽高时设置padding不会改变其宽高，块级元素的特性是默认宽高为容纳其的盒子的宽高，宽高是不可以继承的
 
-块级元素的水平居中显示，设置width以及margin设置为auto，或者margin设置为auto并且text-align: center
-行内元素和行内块元素的水平居中显示，父元素设置为text-align: center;
+**块级元素的水平居中显示，设置width以及margin设置为auto，或者margin设置为auto并且text-align: center**
+**行内元素和行内块元素的水平居中显示，父元素设置为text-align: center;**
 **嵌套块元素塌陷问题**，解决方案：给父元素添加边框/内边框或者添加属性overflow: hidden;
 **品优购快报实践**
 去掉li前面的小圆点的方法list-style: none;
@@ -88,7 +88,7 @@ p229
 
 粘性定位：相对于浏览器的可视窗口的位置来定位，但是占用原先的位置，必须添加top left right bottom其中的一个才有效
 
-盒子的重叠情况：未指定优先级的情况下，后来者居上，可以通过z-index指定优先级，只有定位的盒子才会有index属性
+盒子的重叠情况：未指定优先级的情况下，后来者居上，可以通过z-index指定优先级，**只有定位的盒子才会有index属性**
 
 **解决了昨天的问题** 通过父盒子设置相对定位，子盒子绝对定位设置right: 0;解决了问题，但是为什么没有浮动到最右未解决
 
@@ -99,3 +99,63 @@ p229
 浮动的元素不会压住标准流元素的文字部分，但是绝对定位会
 
 **修改总体的属性然后专门修改局部要注意选择器的优先级**
+
+p245
+
+### 6.25
+***
+元素的显示与隐藏：display: none隐藏元素，display: block除了变为块级显示之外还有显示元素，隐藏不保留元素原本位置
+visibility: hidden隐藏元素visibility: visible显示元素，和display的重要区别是隐藏保留元素的位置
+overflow: hidden隐藏溢出盒子的部分，scroll显示滚动条，auto有溢出的话添加滚动条
+有定位属性的盒子一般慎用overflow属性
+
+### 6.27
+***
+精灵图的使用：针对小的背景图片，主要借助于背景位置来实现background-position，一般坐标都是负值
+CSS做小三角图案：盒子不写内容，直接用边框就会出现三角
+一些比较杂的点：1form表单轮廓线属性outline 2textarea文本域大小更改属性resize
+**vertical-align属性：只针对行内元素和行内块元素生效**
+**解决图片底部默认存在空白的方法，1设置vertical-align只要不是默认的和基线对齐就可以 2将图片转化为块级元素**
+单行文本溢出显示省略号--必须满足的三个条件：
+    1 先强制一行内显示white-space: nowrap;
+    2 超出部分隐藏overflow: hidden;
+    3 文字用省略号替代超出的部分text-overflow: ellipsis;
+类似于页面底部的选择上一页下一页功能使用行内块元素，可以父级元素使用text-align: center属性
+并排显示的盒子的边框不变粗测试，斜三角的制作
+p281
+
+### 6.28
+***
+html5的新特性，视频音频和input的type属性限制输入的内容
+css3新特性，[]选择器，新增可以通过元素的属性选择，**这种选择器不用添加双引号"" 并且属性选择器的优先级同类选择器**
+比如 input[type=text] ^开头 $结尾 *含有 选择class="icon1-6"的六个li元素 li[class^=icon]
+结构子类选择器nth-child(n)里面的n是多少就选择第几个，n也可以不是数字，even偶数，odd奇数
+nth-child对父元素所有子元素排序，先找到第几个子元素再看是否和E匹配，而nth-of-type对指定的E子元素排序，找到第n个
+伪元素新特性：before和after，这两个伪元素必须有content属性并且属于行内元素，伪元素选择器和标签选择器一样权重都为1
+
+### 6.29
+***
+box-sizing: border-box;属性让盒子的宽度高度自动计算padding和border自动调节
+img的图像模糊属性例如filter: blur(5px);
+过渡属性 transition:要过渡的属性 花费时间 运动曲线 何时开始
+1属性：想变化的css属性，宽高，背景颜色，内外边距都可以，如果所有就选all
+2花费时间：单位是秒s，单位必须写
+3运动曲线：默认是ease，可以省略
+4何时开始：单位是秒，可以设置延迟触发时间，默认是0s，可以省略
+过渡属性的位置，哪个元素过渡就写哪个元素，变化多个属性举例：transition: width 0.5s, height 0.5s;
+搜索引擎优化：三个标签title, meta name="description", meta name="keywords" 网站标题，描述以及关键字
+
+### 6.30
+***
+昨天弄了很久都没有解决的字体图标的问题是因为css不是内嵌在html中的，所以相对路径要用css文件的路径，路径没有更改所以字体图标不会显示
+关于垂直居中：像是底部的导航栏还是用行高与高度相等来做，vertical-align可以实现垂直居中但是必须要求是行内块元素（浮动元素目前测试不行）
+我目前针对垂直居中使用过的方法：
+1 line-height=height
+2 vertical-align: center;
+3 已知font-size的情况下计算上下margin值
+4 强行使用子绝父相定位
+5* 父元素用text-align: center属性，使其中的行内块（但是测试的结果是全部的元素）元素水平居中
+
+transition属性：一般写在变化的元素上，比如写在div而不是div:hover，但是如果写在hover上也同样可以实现效果
+
+CSS的继承性：font开头的，text-indent，**text-align，line-height，**color，visibility，list-style，cursor
