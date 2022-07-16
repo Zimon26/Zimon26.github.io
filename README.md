@@ -202,7 +202,9 @@ new关键字的执行过程：
     2 this指向刚才创建的空对象
     3 执行构造函数里面的代码，给空对象添加属性和方法
     4 返回这个对象
-遍历对象使用for in，如果其中的变量是k则console.log(k)输出属性名，console.log(obj[k])输出属性值
+
+**遍历对象使用for in，如果其中的变量是k则console.log(k)输出属性名，console.log(obj[k])输出属性值**
+
 获取时间戳（从1970年1月1号到现在的总的毫秒数）的方法
     1 var date = new Date(); console.log(date.valueOf()/date.getTime())
     2 var date = +new Date(); 简单写法
@@ -251,7 +253,74 @@ p217
 ### 7.10
 给一组元素注册事件：使用循环，做一个五个div只有一个可以处于被点击的案例
 按照时间来看这周到周末之前应该把DOM部分全部看完
+重点是自定义的属性要通过下列的函数获取，设置或者删除
 获取元素属性的方法element.getAttribute('属性')，属性是html的部分不是样式
 html的属性是可以自定义的，通过上面的函数可以获得自定义的属性
 设置属性的方法：element.setAttribute('属性', '值')另外还可以移除属性element.removeAttribute('属性')
-p226
+
+### 7.11
+H5自定义属性的命名规则：前面加上data-，比如data-time
+H5新增了自定义元素的获取修改方法：dataset里面存放所有的自定义属性，前面不能加data
+获取元素的例子：element.dataset.time / element.dataset['time']，如果是连字符还是转化为驼峰命名
+
+DOM节点：
+    节点的三个属性：nodeType节点类型 nodeName节点名称 nodeValue节点值
+    nodeType 1元素节点 2属性节点 3文本节点（包括文字空格换行等） 实际开发主要操作的是元素节点
+    可以通过.parentNode获取父节点，找不到的话返回null
+    通过childNodes获取子节点的集合，不仅加入元素节点还有文本节点比如换行，因为获取到的节点类型复杂导致实际上并不常用
+    实际上可使用children来获取所有元素类节点的集合，常用
+    另外还有firstChlid / lastChild可以获取第一个子节点以及最后一个子节点，但是文本类节点也会算入其中
+    解决方法是firstElementChlid / lastElementChild 不过这个方法有兼容性的问题
+    **保证兼容性可以使用element.children[0] / element.children[element.children.length - 1]**
+    .nextSibling可以获取下一个兄弟节点，但是会算入文本节点 .previousSibling可以获取上个兄弟节点
+    解决这个问题使用nexElementSibling / previousElementSibling就可以了，不过仍然会有兼容性问题
+
+    动态创建节点：document.createElement('标签名') 创建完毕后需要添加位置才能出现
+    node.appendChild(child)添加节点到node的最后一个子元素，位置类似于CSS的after伪元素
+    添加到子元素其他位置：node.insertBefore(child, origin_child)，插入到origin_child子元素之前
+    node.removeChild(child)删除父节点的子节点，返回被删除的这个节点
+    在a标签的herf属性中写javascript:void(0) / javascript:;都可以阻止链接跳转，就不用写#当成按钮用
+    复制节点 node.cloneNode()，如果参数为空或者false，是浅拷贝，只克隆节点本身不克隆子节点，参数是true则深拷贝
+
+    **js获取对象的长度/大小 Object.keys(obj).length 实际上是转数组再求长度**
+    不过实则遍历对象的时候可以直接使用for in
+    p244
+
+安恒实训：
+    1 容器的概念和优点
+    2 虚拟机和容器的区别
+    3 镜像的概念
+    4 隔离操作的局限性
+    5 文件的隔离
+    6 网络的隔离
+    7 最基本的镜像的实现
+
+### 7.12
+并不推荐的js添加元素方法document.write('<div>123</div>')在文档流执行完毕后这个操作会导致页面全部重绘
+innerHTML创建元素效率高于createElement，但是创建多个元素要用数组模式（push累加join连接）而不是字符串拼接
+
+元素事件注册：
+    1 传统方式，利用onclick等，特点是唯一性，同一个元素同一事件只能设置一个处理函数，最后注册的处理函数会覆盖前面注册的处理函数
+    2 方法监听注册方式，addEventListener()，IE9之前可以用attachEvent()代替（只支持ie9以前，非标准极其不推荐），同一个元素同一个事件可以注册多个监听器，按注册顺序依次执行
+    语法规则 element.addEventListener('click', function(){}) 第三个参数可以暂时不管
+
+安恒实训：
+    1 昨天两个思考题的解答
+    2 Docker的分层文件系统
+    3 容器中runC的作用：创建容器内部进程，创建命名空间，划分资源等
+    4 创建自己的镜像：Dockerfile的命令
+
+### 7.16
+vscode出了一些问题导致保存丢失
+
+删除事件的方法：
+    1 传统方式 element.onclick = null
+    2 addEventListener / removeEventListener('click', callback) 函数不能再写匿名函数
+    3 attachEvent / detachEvent
+
+DOM事件流：1 捕获阶段 2 当前目标阶段 3 冒泡阶段
+    事件冒泡：事件开始时最具体的元素接受，然后逐级向上传播到DOM最顶层节点
+    事件捕获：由DOM最顶层节点开始，然后逐级向下传播到最具体元素接受
+JS代码只能执行捕获或者冒泡其中的一个阶段，onclick和attachEvent只能得到冒泡阶段
+addEventListener第三个参数时true表示捕获阶段调用事件处理程序，默认情况false在冒泡阶段调用处理程序
+**捕获和冒泡阶段主要是父子事件的执行顺序区别，捕获是父->子，而冒泡是子->父
