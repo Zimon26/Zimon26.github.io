@@ -323,4 +323,83 @@ DOM事件流：1 捕获阶段 2 当前目标阶段 3 冒泡阶段
     事件捕获：由DOM最顶层节点开始，然后逐级向下传播到最具体元素接受
 JS代码只能执行捕获或者冒泡其中的一个阶段，onclick和attachEvent只能得到冒泡阶段
 addEventListener第三个参数时true表示捕获阶段调用事件处理程序，默认情况false在冒泡阶段调用处理程序
-**捕获和冒泡阶段主要是父子事件的执行顺序区别，捕获是父->子，而冒泡是子->父
+**捕获和冒泡阶段主要是父子事件的执行顺序区别，捕获是父->子，而冒泡是子->父**
+实际开发中很少使用事件捕获，关注事件冒泡，有些事件不会冒泡，比如onblur onfocus onmouseenter onmouseleave
+
+事件对象：
+    1 event参数就是一个事件对象 写到侦听函数中，在小括号中当形参来看
+    2 事件对象只有有事件才会存在，由系统自动创建，不用手动传参
+    3 事件对象有事件的大量信息，比如鼠标事件的鼠标位置，键盘事件的案件信息
+    4 事件的命名一般event / evt / e
+    5 在ie678中只能使用window.event，可以使用e = e || window.event
+    6 e.target返回注册事件的对象，this返回绑定事件的对象，ie678中使用e.srcElement
+    7 e.type返回事件的类型，不带on
+    8 e.preventDefault()阻止默认的事件，比如a的跳转，button的点击
+    9 阻止事件冒泡 e.stopPropagation()，如果是老ie用 cancelBubble = true
+
+    例子  去除右键菜单：document.addEventListener('contextmenu', function(e){e.preventDefault()})
+          禁止鼠标选中：document.addEventListener('selectstart', function(e){e.preventDefault()})
+
+鼠标事件的坐标属性：clientX/Y pageX/Y screenX/Y
+键盘事件：onkeyup onkeydown onkeypress，press和down的区别是press不识别功能按键
+    三个事件的执行顺序是 down->press->up
+    e.keyCode返回按下的键的ascii码值，用key则返回字符，up和down不区分字母的大小写
+    down和press在文本框中都是触发的时候文字还没有落入框中，而up文字就已经落入框中了
+
+### 7.17
+BOM：
+    大于document的概念，顶层元素是window，下属有document location navigation screen history
+    全局变量和全局函数会变成window下属的属性和方法
+    解决之前出现的js必须写在元素后面的问题：js写在window.onload里面，等页面全部加载完毕再触发js
+    如果有多个window.onload事件按最后一个算，当页面图片类比较多的时候可以用document.addEventListener('DOMContentLoaded', function())
+    浏览器大小变化时可以使用window.resize事件 window.innerHeight / innerWidth可以反馈浏览器的
+
+定时器：
+    第一种定时器：window.setTimeout(callback, 毫秒数)，经过多少毫秒就执行callback函数，一般比如var timer1 = window.setTimeout(callback, 2000)
+    window.clearTimeout(timerID)清除指定的那个定时器
+    第二种定时器：window.setInterval，主要的区别是每隔设定的事件就会执行一次，同样也可以使用clearInterval(Interval_ID)消除
+    
+在全局作用域和普通函数中this指向的都是window
+
+js的同步和异步：
+    同步任务都在主线程执行，形成一个执行栈
+    异步任务通过回调函数实现，回调函数放在任务队列中，异步任务主要三种类型：普通事件 / 资源加载 / 定时器
+    执行顺序是先执行同步任务，异步任务放入任务队列中，同步任务执行完毕后，系统按次序读取任务队列中的异步任务并执行
+    主线程执行栈->异步进程处理->任务队列 然后任务队列再按顺序进主线程执行栈 异步进程处理会判断是否该执行回调函数（是否有事件/定时器是否到时等）
+
+js location是关于页面url的属性，上级是window，可以通过几个下级属性获取url的信息 .href返回全部url地址 .search返回url中的参数
+location的三个方法，assign / replace / reload 前两个是换到其他页面，区别是是否保存回退历史，reload相当于刷新，如果参数是true强制刷新
+
+navigator属性存储了关于浏览器的很多属性，最常用的是navigator.userAgent用来判断用户的浏览器类型
+history的forward / back方法相当于浏览器按键的前进后退，go方法可以输入数字决定前进后退几步
+
+元素的offset属性，offsetLeft / Top等表示和有定位的父元素的偏移距离，px返回值无单位
+offsetWidth / Height 返回包括border padding width/height的属性 offsetParent返回带有定位的父元素
+**offset和style的对比，style只能获取行内样式所以不能获取到一般使用的初始外部css样式表，但是可以更改，适合修改，offsetWidth / Height适合获取**
+p291
+
+### 7.18
+p292
+
+### 7.19
+client属性：
+    element.clientTop / Left 上左border大小 element.clientWidth / Height返回自身包括padding content，不含border的宽度高度
+    **client和offset系列的区别主要在边框，offset有，client无**
+立即执行函数：
+(function(){})() / (function(){}()) 函数不需要调用直接执行 立即执行函数的最大好处是创建了一个局部作用域
+
+### 7.20
+pageshow事件是更好的解决load事件缓存的方式，所有重新加载的场景都可以用pageshow
+scrollHeight / Width计算全部的宽高，包括超出部分的高度 / 宽度，另外还有scrollTop
+p305
+
+### 7.21
+元素被滚动遮挡的头部是element.scrollTop，而页面被滚动遮挡的头部是window.pageYOffset，如果是水平滚动则是window.pageXOffset
+总结三种位置：
+    offset经常用于获得元素位置，client获取元素大小，scroll获取滚动距离，页面的滚动用window.pageXOffset
+mouseover鼠标经过自身盒子触发，经过子盒子还会出发，mouseenter只经过自身盒子触发，对应的是mouseleave
+js实现动画：
+    主要原理是利用定时器setInterval()不断移动盒子位置
+    实现的步骤是 1获得盒子当前位置 2让盒子移动一个单位 3利用定时器重复这个操作 4加一个结束定时器的条件 5这个元素必须添加定位
+    可以使用一个函数来封装动画函数
+p317
