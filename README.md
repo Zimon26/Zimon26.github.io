@@ -396,10 +396,50 @@ p305
 ### 7.21
 元素被滚动遮挡的头部是element.scrollTop，而页面被滚动遮挡的头部是window.pageYOffset，如果是水平滚动则是window.pageXOffset
 总结三种位置：
-    offset经常用于获得元素位置，client获取元素大小，scroll获取滚动距离，页面的滚动用window.pageXOffset
+    offset经常用于获得元素位置，client获取元素大小，scroll获取滚动距离，页面的滚动用window.pageYOffset
 mouseover鼠标经过自身盒子触发，经过子盒子还会出发，mouseenter只经过自身盒子触发，对应的是mouseleave
 js实现动画：
     主要原理是利用定时器setInterval()不断移动盒子位置
     实现的步骤是 1获得盒子当前位置 2让盒子移动一个单位 3利用定时器重复这个操作 4加一个结束定时器的条件 5这个元素必须添加定位
     可以使用一个函数来封装动画函数
 p317
+
+### 7.22
+p329
+今天主要看了轮播图的具体实现，还有一些细节比如轮播图节流阀（防止按按键会一直加速）
+window.scroll(x, y)窗口滚动到下x y的坐标位置，可以用于回到顶部这种情况，写xy的时候不加单位
+
+### 7.23
+实际上手动画有点问题，需要回顾视频
+调试动画过程中发现的问题，首先是没有offsetRight或者offsetBottom属性，只有left和top
+获取通过offset，调整通过style.left类的属性，并且style类的属性赋值需要自己添加单位比如px，而offset类的属性不自带单位
+比如说这么写 son.style.left = son.offsetLeft - 1 + 'px';
+第二是定时器的中止条件写在定时器函数的内部，写在外部不行
+为什么不能写在外部：因为定时器函数属于异步任务，结束条件写在外面相当于同步任务，先执行同步任务再执行异步任务，所以定时器结束条件写在里面
+
+### 7.24
+今天的任务是动画封装函数的上手以及非匀速动画 - 比较快的速度就完成了
+非匀速动画的核心，计算target和当前的距离，每次移动的step是(target - offsetNow) / 10，这个结果再随正负数进行上下取整即可
+封装函数完成，设置点击实现动画但是在动画还未点击完毕时再次点击会混乱，因为开启了多个定时器，要限制只能有一个定时器，只需要开定时器前关闭定时器即可
+p332接下来的一部分是移动端的js，应该先补完就业班的CSS内容包括2D3D旋转，移动端等再回来看，看完这部分是jquery
+
+### 7.25
+**CSS提高部分**
+transform CSS3的新特性，2D转换：可以实现元素的位移，旋转，缩放等，简单可以理解为变形
+移动效果 transform: translate(x, y)或者也可以分开写transform: translateX(n)，写的时候要带单位
+**translate最大的优点是不会影响其他元素的位置，会遮盖** translate写百分比是相对自身元素，对行内元素无效果
+这个特性提供了新的移动子盒子到父盒子中间的方法 top: 50% left:50% transform: translate(-50%, -50%)
+
+旋转效果 rotate(?deg)旋转?度，正数顺时针，负数逆时针，可以配合transition属性实现旋转的动画
+默认情况下旋转的中心点就是元素的中心点，可以通过transform-origin设置到其他的位置去
+默认情况下是transform-origin: 50% 50%或者transform: center center可以使用方位词 left bottom或者像素
+
+放大缩小效果 scale transform: scale(x, y) x宽度y高度 默认不带单位写的是倍率 比如原封不动是scale(0, 0)，等比例缩放的话可以只写一个参数scale(s)
+scale对比直接修改width和height的好处是可以设置缩放中心点，并且放缩不会影响到其他的元素，缩放中心点还是transform-origin
+
+transform属性可以连着写，但是连着写顺序会有影响，rotate和scale会导致坐标的改变，有多个属性的情况下先写translate
+
+CSS动画效果 先定义动画再调用动画
+使用@keyframes定义一个动画，设置0%起始和100%结束时候的状态，然后在需要动画的元素中添加属性animation-name animation-duration
+0%和100%这个属性是动画序列，可以改变任意多样式和任意多次数，用%规定变化发生的事件，或者用from to关键字，相当于0% 100%
+p369
