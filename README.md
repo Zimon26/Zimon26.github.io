@@ -339,6 +339,7 @@ addEventListener第三个参数时true表示捕获阶段调用事件处理程序
 
     例子  去除右键菜单：document.addEventListener('contextmenu', function(e){e.preventDefault()})
           禁止鼠标选中：document.addEventListener('selectstart', function(e){e.preventDefault()})
+          各种文库网站禁止复制的方法
 
 鼠标事件的坐标属性：clientX/Y pageX/Y screenX/Y
 键盘事件：onkeyup onkeydown onkeypress，press和down的区别是press不识别功能按键
@@ -443,3 +444,160 @@ CSS动画效果 先定义动画再调用动画
 使用@keyframes定义一个动画，设置0%起始和100%结束时候的状态，然后在需要动画的元素中添加属性animation-name animation-duration
 0%和100%这个属性是动画序列，可以改变任意多样式和任意多次数，用%规定变化发生的事件，或者用from to关键字，相当于0% 100%
 p369
+
+### 7.26
+动画的其他属性：
+    何时开始 animation-delay 默认是立即开始
+    重复多少次 animation-iteration-count 写infinite就无限循环
+    是否下一次逆向播放 animation-direction 默认是normal 写alternate则下一次反向
+    动画结束后的状态 animationo-fill-mode 默认是backwards返回起始状态，写forwards停留在结束状态
+    动画运行或者暂停 animation-play-state 默认是running，暂停是paused
+动画的简写 animation: 动画名称 持续时间 运动曲线 何时开始 播放次数 是否反方向 动画起始结束的状态
+name和duration是必须写的属性，另外简写的属性中不包括animation-play-state，简写的时候可以用逗号分隔多个动画
+元素的透明度属性 opacity，写的就是透明度0-1
+脉冲波纹属性中不写scale来放大的原因是如果改动sacle会导致box-shadow一起倍增
+速度曲线中的细节animation-timing-function有一个特殊属性steps()是时间函数中的间隔数量，简单来说就是给动画分段，一段一段走
+
+3D转换，增加了一个z轴，向屏幕外是正，屏幕里是负
+3D位移 transform: translate3d(x, y, z)，z的坐标单位基本上只用px
+想要产生3D效果，需要添加perspective透视属性，透视属性类似于添加眼睛看屏幕的距离
+透视写到被观察元素的父盒子上面
+
+3D旋转 rotate3d(x, y, z, deg)沿着自定义的轴(x,y,z)矢量旋转deg为角度，一般单独使用比如rotateX(x)
+判断旋转的正方向可以使用左手准则，四指弯曲拇指伸直对准轴的正方向四指就指向旋转的正方向
+
+3D呈现 transform-style 让父元素控制子元素是否开启三维立体的环境，默认是flat，改成preserve-3d就可以启动3d，注意是写给父元素的属性
+**子元素想要3d效果 父元素必须提供perspective和transform-style属性**
+**翻转类型的翻过来不显示背面的方法：backface-visibility: hidden**
+3d导航栏部分遇到了很多障碍，总结：
+    1 perspective和transform-style都只针对下面一层的子元素，这两个属性不需要同时出现，按需使用有3d效果跟近大远小没有必然的关系
+    2 90度类型的旋转因为转轴的变化比较困难最好改成根据转轴是一个正方体类型的东西
+制作旋转木马时发现的新问题：一般位移和旋转同时存在时只要出现两个维度的位移就很容易出问题，圆形绕圈可以先旋转再位移
+css动画部分完结 p388
+
+### 7.27
+浏览器的私有前缀：
+    -moz- firefox
+    -ms- ie
+    -webkkit- chrome edge safari
+    -o- opera
+私有属性可以直接添加到属性的前面比如 -webkit-border-radius: 10px
+
+**移动端布局开发**
+兼容移动端的处理器只需要处理webkit内核
+视口viewport是浏览器显示页面内容的屏幕区域，可以分为布局视口，视觉视口和理想视口
+    布局视口：一般由移动端浏览器默认设置，解决早期pc端网页在移动端的显示问题，手机大部分将这个视口设置为980px，pc端网页能显示但是内容都很小
+    视觉视口：用户能看到的网站区域，可以用缩放操作视觉视口
+    理想视口：手动写meta视口标签通知浏览器，让布局视口的宽度和理想视口宽度一致，理想视口是最合适浏览的视口
+meta视口标签属性
+    width 宽度设置的是viewport宽度，可以设置device-width特殊值
+    initial-scale 初始缩放比
+    maximum-scale 最大缩放比
+    minimum-scale 最小缩放比
+    user-scalable 用户是否可以缩放 yes/no或者1/0
+标准的viewport配置是width设备宽度，初始/最大/最小缩放比都为1，不允许用户自行缩放
+
+二倍图：物理像素和物理像素比，pc端一般1像素就是真实1像素（高分屏不是），移动端经常这两个不对等
+一个px能显示的物理像素点的个数称为物理像素比或者屏幕像素比，现在手机都是视网膜屏幕的情况下像素比都不是1
+在视网膜屏幕中打开图片会因为更多像素导致模糊，可以使用倍图来解决这个问题
+在视口中设置，准备的图片是实际大小*像素比，在图片显示中修改width和height除像素比，在手机中就可以正常显示
+背景缩放 background-size: 宽度 高度 如果只写一个参数就是省略高度，高度随宽度等比例缩放，单位也可以跟%百分数对比父盒子
+background-size有两个特殊属性cover和contain，cover等比例拉伸至完全盖住盒子，可能有损失图像，而contain是等比例拉伸到宽高任意一个到父盒子就停止
+**背景图片的放大缩小使用的就是background-size属性，但是多倍图本身扩大还是得准备材料的过程完成，缩小可以使用background-size属性**
+准备材料切图的过程可以使用cutterman切图工具切出多倍图
+
+移动端的开发目前有两种主流方案：1 单独制作移动端的页面 2 响应式页面兼容移动端
+单独制作是主流，通常在域名前面加一个m比如m.jd.com
+
+移动端有推荐的初始化css代码 normalize.css 盒子模型一般使用CSS3的border-box
+移动端单独需要注意的三个样式：
+    -webkit-tap-highlight-color: transparent; 清除点击高亮
+    -webkit-appearance: none; 清除ios自带的按钮和输入框样式
+    img, a {-webkit-touch-callout: none;} 禁止长按页面出现菜单
+
+流式布局：
+    特点是通过百分比布局宽度，而不是传统方式用像素
+    可以通过给max-width和min-width限制最大最小的宽度
+    p403
+
+### 7.28
+图片的居中对齐有时候用line-height并不管用，原因是要用vertical-align设置图片的对齐属性，图片默认是基线对齐，改成居中对齐，行内块一般用vertical-align，但是做这一步还是必须注意设置行高
+
+二倍图的精灵图：先把整个精灵图等比例缩放为原来的一半再测量坐标，代码里面使用background-size修改为原来的一半，核心问题是二倍图的坐标也会有变化
+
+去除图片上下之间的空白缝隙（左右可以float）vertical-align: top/middle
+
+flex布局：
+    操作方便，布局简单移动端应用广泛，PC端浏览器支持情况较差
+    ie11或者更低的版本不支持或仅部分支持
+
+flex是弹性布局，任何容器都可以指定为flex布局
+再父元素设置flex布局后子元素的float，clear，vertical-align属性失效
+采用flex布局的元素称为flex容器，它的所有子元素称为flex项目
+布局的原理是通过给父盒子添加flex属性控制子盒子的位置和排列方式
+
+flex布局父元素（容器）的六个属性：
+    1 flex-direction 设置主轴的方向
+    2 justify-content 设置主轴的子元素排列方式
+    3 flex-wrap 设置子元素是否换行
+    4 align-content 设置侧轴上子元素的排列方式（多行）
+    5 align-items 设置侧轴上子元素的排列方式（单行）
+    6 flex-flow 复合属性，相当于同时设置flex-direction和flex-wrap
+默认的主轴就是x轴，侧轴就是y轴，子元素是根据主轴来排列的
+flex-direction可以选的属性有row（默认）row-reverse column column-reverse
+**子元素本身的顺序由flex-direction决定**
+justify-content的属性有
+    flex-start（默认）从主轴头部开始
+    flex-end 从主轴尾部开始
+    center 在主轴居中对齐
+    space-around 平分剩余空间
+    space-between 先两边贴边再平分剩余空间
+不像浮动，弹性布局子元素在一行塞不下的情况下会修改所有元素的宽度以至于强行能塞下，所谓弹性
+flex-wrap设置换行，默认情况下不换行，属性值只有wrap和nowrap（默认）
+align-items设置单行情况下侧轴子元素排列方式，属性有flex-start从上到下 flex-end从下到上 center居中 stretch拉伸（默认）
+stretch这个属性在有高度的情况下无法体现，子元素没有设置高度的情况下会拉伸跟父元素同样的高度
+**单行子元素设置水平和垂直都居中的话就justify-content和align-items都设置为center**
+align-content设置多行情况侧轴子元素的排列方式，单行无效，在align-items属性的基础上增加了space-around和space-between
+flex-flow可以简写属性，比如flex-flow: row wrap 主轴x轴，换行
+
+flex布局子元素的属性：
+    flex 定义子项目分配剩余空间，占多少份，比如flex: 0（默认）所谓的剩余空间指的是有宽度的子项目算完了，没给宽度的分剩余空间
+    总份数是没有设置宽度的子项目的个数，这种适合做类似京东搜索条那种两边固定中间自适应的
+    align-self 设置子元素本身在侧轴上的排列方式，可以覆盖父元素的align-items属性，默认为auto，如果没有父元素就是stretch
+    order 定义子元素的排列顺序，默认是0，数值越小越靠前
+p426
+
+### 7.29
+回顾固定定位，固定定位跟父级元素没有关系，以屏幕作为参考
+使用border-box盒子模型的情况下，height=line-height的话会比正常居中靠下一点点，因为这种模型会把padding和border算入盒子的高度，解决的方法就是line-height减去这两个值
+
+flex有些时候也可以单纯用来调节元素的对齐属性，子元素不是必须加flex分份，弹性的才需要加这个属性
+
+背景颜色线性渐变：
+    background: linear-gradient(起始方向, color1, color2) 比如background: -webkit-linear-gradient(left, red, blue)
+    这个起始方向是比如从左到右，从左上到右下（top left），默认情况下是从上到下渐变，因为浏览器的支持原因这个属性必须添加私有前缀比如这个webkit
+
+### 7.30
+新知识：子元素的flex属性可以写百分比，占主轴那个属性（宽或者高）的多少
+flex父元素的子元素不一定非要写flex属性，有时候flex子元素是自适应的
+
+rem适配布局：主要能解决的问题是页面布局的高度也随着屏幕的变化而自动适配
+    rem的基准是相对HTML根元素的字体大小，而em是针对父元素的字体大小
+    rem最大的优点是通过修改html里面的文字大小来改变页面中元素的大小，可以整体控制
+
+媒体查询：CSS3新语法
+    @media，可以针对不同的屏幕尺寸设置不同的样式
+    语法格式 @media mediatype and/not/only (media feature) {
+        CSS代码
+    }
+    mediatype用于区分终端类型 all/print（用于打印）/screen（各种屏幕）
+    关键字用于链接媒体类型和媒体特性 and连接多个媒体特性 not排除某个媒体特性 only只有某个媒体特性
+    @media screen and (max-width: 800px) 在屏幕上且最大像素为800，如果有多个条件就多个and
+
+当样式比较繁多的时候可以引入资源，核心是针对不同的媒体使用不同的样式表，原理就是在link中判断设备尺寸
+语法格式 <link rel="stylesheet" media="mediatype and/not/only (media feature)" href="mystylesheet.css">
+
+Less 一种CSS扩展语言，也称为CSS预处理器，为CSS增加了程序式语言的特性，写的时候写在专门的.less文件中
+Less变量 @var: pink 使用 background-color: @var 其他的CSS可以直接写在.less文件中，需要经过编译自动转化为CSS
+Less嵌套 子元素的样式可以写在父元素里面，如果是父元素的属性或者伪类选择器等，要添加&（相当于就是父元素的名字），比如&:hover {...} &::before {...}
+less运算 less提供了简单的加减乘除运算，但是运算符两侧必须有空格，两个不同的单位的话运算结果以第一个单位为准，另外运算最外层可以添加括号
