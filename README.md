@@ -360,7 +360,7 @@ BOM：
     window.clearTimeout(timerID)清除指定的那个定时器
     第二种定时器：window.setInterval，主要的区别是每隔设定的事件就会执行一次，同样也可以使用clearInterval(Interval_ID)消除
     
-在全局作用域和普通函数中this指向的都是window
+**在全局作用域和普通函数中this指向的都是window**
 
 js的同步和异步：
     同步任务都在主线程执行，形成一个执行栈
@@ -601,3 +601,98 @@ Less 一种CSS扩展语言，也称为CSS预处理器，为CSS增加了程序式
 Less变量 @var: pink 使用 background-color: @var 其他的CSS可以直接写在.less文件中，需要经过编译自动转化为CSS
 Less嵌套 子元素的样式可以写在父元素里面，如果是父元素的属性或者伪类选择器等，要添加&（相当于就是父元素的名字），比如&:hover {...} &::before {...}
 less运算 less提供了简单的加减乘除运算，但是运算符两侧必须有空格，两个不同的单位的话运算结果以第一个单位为准，另外运算最外层可以添加括号
+p451
+
+### 7.31
+在less中引入其他的less代码使用 @import "file name";或者@import url(...)
+flexible.js优势是rem是随屏幕的像素无极变化的，但是官方已经不再维护，也有一些问题
+p481
+
+### 8.1
+**HTML CSS p496 返回JS课程**
+移动端网页特效三个新事件：
+    touchstart 手指触摸到DOM元素触发
+    touchmove 手指在DOM元素上滑动触发
+    touchend 手指从DOM元素上移开触发
+对应有触摸事件对象 TouchEvent 可以用来描述触点个数，检测触点移动，触点的增加和减少等
+TouchEvent e 所对应的属性和含义
+    touches 触摸屏幕的所有触点的列表
+    targetTouches 正在触摸当前DOM元素手指的列表
+    changedTouches 手指状态发生改变的列表，从无到有或者从有到无（记录的是变化的触点）
+手指拖动元素需要当前手指的坐标值，单个手指时使用targetTouches[0]里面的pageX和pageY属性即可
+**防止手指移动导致页面滚动 e.preventDefault();**
+margin写百分比的话是相对于父元素的
+
+### 8.2
+可以用css来实现动画的效果，这比js实现要更简单，动画过渡完成的事件是transitionend
+classList属性，可以返回元素的类名表，因为一个元素可能有多个类名，单纯使用className会返回所有的类名
+可以添加类名element.classList.add('name') 删除类名 element.classList.remove('name') 切换类名（没有添加，有删除）element.classList.toggle('name')
+
+移动端click事件会有300ms的延时，因为双击会缩放页面，解决这个问题的方法有三种（去除300ms判定）
+    1 禁用缩放，在视口标签 content="user-scalable=no"
+    2 利用touch事件封装事件解决300ms延迟，触摸屏幕到离开屏幕的事件小于150ms并且无滑动就定义为点击
+    3 使用fastclick.js插件
+灵活运用swiper可以大幅提高开发的效率
+
+本地存储：
+    1 数据存储在用户的浏览器
+    2 设置读取方便，页面刷新也不会丢失数据
+    3 容量比较大 sessionStorage 5M localStorage 20M
+    4 只能存储字符串，可以将对象JSON.stringify()编码后存储
+sessionStorage：
+    1 生命周期为关闭浏览器窗口
+    2 同一个窗口（页面）下数据可以共享
+    3 键值对形式存储
+    语法 sessionStorage.setItem(key, value) / getItem(key) / removeItem(key) / clear()
+localStorage：
+    1 生命周期永久生效，除非手动删除否则关闭页面也会存在
+    2 可以多窗口（页面）共享，在一个浏览器内部都可以共享
+    3 键值对形式存储
+    本身语法跟sessionStorage相同
+复选框的change事件可以用来判断复选框的内容有没有改变
+
+**jQuery开始，移动端bootstrap**
+
+jQuery对于页面DOM加载完毕再执行脚本的操作：相当于原生js的DOMContentLoaded
+    1 $(document).ready(function() {
+        要执行的代码
+    })
+    2 $(function() {
+        要执行的代码
+    })
+在jQuery中$是jQuery的别称，是顶级对象，可以利用$包装对象
+jQuery对象本质是利用$包装后产生的对象，以伪数组形式存储，jQuery对象只能使用jQuery的方法
+DOM对象转化为jQuery对象 $(DOM对象) 里面可以直接用选择器
+jQuery对象转化为DOM对象 $(...)[index] / $(...).get(index) 因为是伪数组，拿出来就行了
+获取jQuery对象 $('选择器') 修改元素样式 jQuery对象.css('属性', '值') css()是一个内置的方法
+获取jQuery对象的时候内部的选择器可以加入额外参数 :first / :last / :odd / :even / :eq(index) 选择索引号是第几个的
+jQuery筛选方法：
+    parent() / children(selector)找亲儿子子代 / find(selector)找所有子代 / siblings(selector) 找同级对象不包括自身
+    nextAll([expr]) 后续所有同级/ prevAll([expr]) 之前所有同级/ hasClass(className) 有无这个类名/ eq(index)
+p370
+
+### 8.3
+写jQuery事件的时候，可以用$(this)表示当前对象，jQuery有隐式迭代特性，选择器选出来如果是伪数组内部多个，每一个都会自动执行一次
+获得当前元素的索引号的方法jQuery对象.index() 可以用于精准操作一组元素
+操作css的方法 css() 参数只写属性名返回的是属性值，参数也可以是对象的形式，可以不加引号，但是如果值不是数字就还是需要加引号
+比如 注意复合属性还是需要驼峰命名法
+    $('div').css({
+        width: 200px,
+        height: 200px，
+        backgroundColor: "pink"
+    })
+通过修改类名修改样式 jQuery对象.addClass(类名) / removeClass() / toggleClass() 切换类
+
+jQuery封装的动画效果，太多了可以参考存在8.1-8.7的文件夹的图片
+
+slideDown / slideUp / slideToggle 上拉下拉菜单
+比如 $('div').children('ul').slideDown(200) 里面的参数是动画完成的时间
+.hover(function() {} / function() {}) 里面第一个函数对应mouseenter，第二个对应mouseleave，如果只写一个的话鼠标经过离开都会触发
+.stop()停止动画，相当于节流阀，写到动画的前面，谁有动画写在谁的前面 $(this).children('ul').stop().slideToggle();
+fade系列，时间和透明度必须要写，一般使用fadeTo较多，fadeIn / fadeOut 淡入显示 / 淡出隐藏
+.animate()方法 第一个参数对象，表示动画后的属性，第二个参数时间，第三个参数一般不修改默认swing可以改为linear，第四个参数回调函数
+
+获取html元素的属性 jQuery对象.prop(属性名)，如果设置属性就写属性名和属性值，自定义的属性使用attr()获取或者修改
+数据缓存 date() 把元素存放到元素的缓存中 存放$('div').data('uname', 'jack') 获取$('div').data('uname')
+:checked选择器可以选出被勾选的有几个，适合判断是否全选
+获得或者修改原生js中相当于innerHTML的内容 .html()方法 如果是innerText就是.text()方法 获得设置表单值 .val()方法
