@@ -26,7 +26,7 @@ CSS的三大特性：层叠性，继承性，优先级
 ***
 边框属性可以连写：border: width style color;
 border四个边框可以拆开，比如border-top
-制作表格时合并相邻边框使用border-collapse: collapse;
+制作表格时合并相邻边框使用border-collapse: collapse;这个属性写在表格而不是列表
 border是本身盒子大小的扩充，盒子的宽高属性不包括border
 
 padding的简写设置
@@ -279,6 +279,7 @@ DOM节点：
     node.appendChild(child)添加节点到node的最后一个子元素，位置类似于CSS的after伪元素
     添加到子元素其他位置：node.insertBefore(child, origin_child)，插入到origin_child子元素之前
     node.removeChild(child)删除父节点的子节点，返回被删除的这个节点
+    直接element.remove()删除自身节点
     在a标签的herf属性中写javascript:void(0) / javascript:;都可以阻止链接跳转，就不用写#当成按钮用
     复制节点 node.cloneNode()，如果参数为空或者false，是浅拷贝，只克隆节点本身不克隆子节点，参数是true则深拷贝
 
@@ -667,13 +668,14 @@ jQuery对象转化为DOM对象 $(...)[index] / $(...).get(index) 因为是伪数
 获取jQuery对象 $('选择器') 修改元素样式 jQuery对象.css('属性', '值') css()是一个内置的方法
 获取jQuery对象的时候内部的选择器可以加入额外参数 :first / :last / :odd / :even / :eq(index) 选择索引号是第几个的
 jQuery筛选方法：
-    parent() / children(selector)找亲儿子子代 / find(selector)找所有子代 / siblings(selector) 找同级对象不包括自身
+    parent() / children(selector) 找亲儿子子代 / find(selector) 找所有子代 / siblings(selector) 找同级对象不包括自身
     nextAll([expr]) 后续所有同级/ prevAll([expr]) 之前所有同级/ hasClass(className) 有无这个类名/ eq(index)
+    parents(selector) 根据选择器选祖先元素 / .index() 找伪数组中的第几个
 p370
 
 ### 8.3
 写jQuery事件的时候，可以用$(this)表示当前对象，jQuery有隐式迭代特性，选择器选出来如果是伪数组内部多个，每一个都会自动执行一次
-获得当前元素的索引号的方法jQuery对象.index() 可以用于精准操作一组元素
+**获得当前元素的索引号的方法jQuery对象.index() 可以用于精准操作一组元素**
 操作css的方法 css() 参数只写属性名返回的是属性值，参数也可以是对象的形式，可以不加引号，但是如果值不是数字就还是需要加引号
 比如 注意复合属性还是需要驼峰命名法
     $('div').css({
@@ -695,4 +697,135 @@ fade系列，时间和透明度必须要写，一般使用fadeTo较多，fadeIn 
 获取html元素的属性 jQuery对象.prop(属性名)，如果设置属性就写属性名和属性值，自定义的属性使用attr()获取或者修改
 数据缓存 date() 把元素存放到元素的缓存中 存放$('div').data('uname', 'jack') 获取$('div').data('uname')
 :checked选择器可以选出被勾选的有几个，适合判断是否全选
-获得或者修改原生js中相当于innerHTML的内容 .html()方法 如果是innerText就是.text()方法 获得设置表单值 .val()方法
+**获得或者修改原生js中相当于innerHTML的内容 .html()方法 如果是innerText就是.text()方法 获得设置表单值 .val()方法**
+.toFixed()设定数字的小数保留到多少位
+p394
+**js高级**
+类的创建和使用
+class Car{
+    constructor(uname) { 构造函数，不自己设定也会自动有，new的时候这个函数自动调用
+        this.uname = uname;
+    }
+    drive() { 类里面的成员函数不写function关键字，方法之间不加逗号
+        console.log('driving')'
+    }
+}
+var real_car = new Car('benz'); 创建对象
+class Son extends Father {...} 子类继承父类
+使用super关键字可以访问和调用父类的函数，包括构造函数，有时候子类用父类方法必须super一个父类
+子类可以重写父类的方法，就近原则，用super可以强行调用父类的方法 super写在子类构造器中的话必须写在子类的this之前，先父类再子类
+对象方法中用对象自己的属性或者调用自身方法一定加上this，比如在构造器中调用函数需要加上this this.drive()
+constructor中的this指向的是要构造的这个对象的实例，成员方法的this指向调用者（不一定是对象本身，谁调用this指向谁）
+
+### 8.4
+因为成员函数内部的this不一定指向对象自身，有时候又需要用对象自身，可以在类外面设置一个全局变量，在构造器中把this赋值给全局变量
+this指向的就是调用者，谁调用指向谁，比如 this.lis[i].onclick = this.toggleTab; //调用成员函数toggleTab的调用者是lis[i]
+添加和插入元素的新方法 insertAdjacentHTML('beforeend或者其他位置', 元素字符串);
+js高级p20
+jQuery对元素的遍历：
+    $('div').each(function(index, domElement) {...})
+    回调函数的参数是索引号和DOM元素对象（变量本身的名字可以随便取），如果使用jQuery方法就给这个DOM元素对象转换成jQuery对象
+    $.each(object, function(index, element){...})
+    这种遍历方法可以用于任何对象，主要用于数据处理，比如数组对象等，如果遍历dom元素就把$('div')写在object参数
+    如果写的是一个对象，index属性名，element属性值，数组则index序号，element具体的值
+jQuery创建和添加元素
+    创建 $('<div>新创建的元素</div>') 创建主要是把元素写完
+    内部添加
+        $('ul').append(li) 这里的li是一个刚才方法创建的变量，放的位置是ul的子元素的最后面，类似原生js的appendChild
+        .prepend()就是作为最前面的子元素
+    外部添加
+        $('div').before('内容') 内容把标签写齐
+        $('div').after('内容')
+    删除元素
+        $('ul').remove() 删除自身
+        $('ul').empty() 删除所有子节点
+        $('ul').html('') 删除内容，也会删除子节点，跟上面效果相同
+p399
+
+### 8.5
+jQuery尺寸：
+    1 width() / height() content部分的宽高
+    2 innerWidth() / innerHeight() content和padding
+    3 outerWidth() / outerHeight() content padding border
+    4 outerWidth(true) / outerHeight(true) content padding border margin
+不仅可以获取，还可以修改，修改的话不需要添加单位，默认是像素
+jQuery位置：
+    1 offset() 获取设置元素对于文档document的属性，跟父元素无关，获取的是对象{top, left}，设置可以这么写element.offset({top: 50, left: 20});
+    2 position() 相对带有定位的父级元素的偏移，也是对象跟上面相同
+    3 scrollTop() 滚动滚动条被卷曲的头部，$(document).scrollTop()判断页面下滑了多少
+    如果制作返回顶部的按钮，需要动画效果的情况下 $('body, html').stop().animate({scrollTop: 0})，因为这个函数只能给元素，document不是元素
+动画函数的回调函数的重要作用是在动画执行完毕才会调用
+jQuery事件处理
+    on()绑定事件，on内部是对象，对象属性是各种事件和相应处理函数的集合，并且前面的事件可以写两个及以上，调用相同的事件处理函数
+    on()还可以实现事件委托，子元素的事件绑定到父元素 $('ul').on('click', 'li', function() {...})通过子元素冒泡触发父元素处理
+    on()可以给动态创建的元素绑定事件，默认情况下新元素也会被on绑定
+    off()可以解绑事件，$('div').off('click') 如果不写就解除全部事件，通过写off('click', 'li')也可以解除委托的事件
+    one()绑定的事件只能触发一次，使用方法和on相同
+jQuery自动触发事件
+    element.click() 类似原生js的写法
+    element.trigger('click')
+    element.triggerHandler('click') 和前面比的特点是不会触发元素的默认行为
+jQuery p417
+
+在ES6之前没有专门的类的概念，对象不基于类创造，基于构造函数
+创建对象三种方式 1 对象字面量 2 new Object() 3 自定义构造函数
+new在执行的时候会做的四件事：
+    1 内存中创建一个新的对象
+    2 让this指向这个对象
+    3 执行构造函数中的代码，给对象添加属性和方法
+    4 返回这个新的对象（所以说构造函数不需要return）
+对象中有两种成员 实例成员和静态成员
+    实例成员只能通过实例化的对象访问，不可以通过构造函数名访问
+    静态成员是直接添加到构造函数上的比如构造函数是Car()，Car.brand = 'benz'就是直接添加到构造函数，只能通过构造函数名访问
+构造函数方法创建对象存在浪费内存的问题，比如对象的实例函数就会反复开辟内存存放
+构造函数可以通过原型prototype分配共享的函数，每一个构造函数都有prototype属性，指向另一个对象，prototype就是一个对象，对象的方法和属性都被构造函数拥有
+**一般一些不变的方法可以直接定义到prototype对象上，这样对象的实例就可以共享方法**
+对象都会有属性__proto__指向构造函数的prototype原型对象，对象可以使用构造函数的prototype属性和方法是因为有__proto__
+__proto__是一个非标准的属性，意义是给对象的查找机制提供方向和路线，但是是一个非标准的属性，仅仅指向原型对象prototype，实际开发不使用这个属性
+//目前MDN显示这个属性已经被废除，不再推荐修改原型，而是创建一个继承于原型的新对象，使用Object.create()
+在对象调用方法的时候，先看自身有没有写内部的方法，如果没有再到构造函数对应的原型里面去找
+在__proto__和prototype中都有constructor属性，存放的也就是构造函数本身，记录对象引用自哪一个构造函数
+有些情况下直接通过 prototype = {一个新的对象} 重新赋值修改了原型，需要把原型的constructor属性指回构造函数 constructor: 构造函数的名字;
+原型对象也有原型 构造函数名.prototype.__proto__指向的是Object中的prototype，作为最顶层Object.prototype.__proto__指向的是null
+原型链图示存放在8.1-8.7中
+从原型链引申出js的成员查找机制，先找对象自身，然后它构造方法的原型，然后Object的原型，如果还是没有就是null
+原型对象函数和构造函数中的this都指向实例对象
+修改内置对象的原型可以添加内置对象的自带函数，比如修改Array.prototype.func = function() {...}添加新方法
+call(thisArg, arg1, arg2, ...)函数可以修改函数运行时候this的指向 call的使用：函数名.call()，第一个参数就是修改后的this
+在ES6之前因为没有extends关键字，继承通过构造函数+原型对象模拟继承，称为组合继承，核心是子类构造函数通过call()修改this调用父类
+p35
+
+### 8.6
+接昨天的组合继承，父类的方法是写在prototype原型对象的，子类构造函数仅call父元素构造函数，不包括原型对象所以也不能得到父类的方法
+简单的Son.prototype = Father.prototype会出现问题，修改子原型对象会导致父原型对象也跟着变化（指向了同一个prototype原型对象）
+解决方案Son.prototype = new Father(); Son.prototype.son_func = ... 为子类的继承专门创建一个父类的实例对象，然后修改constructor属性
+**利用直接赋值对象的方法修改了原型对象，一定要修改constructor属性指回原来的构造方法**
+从ES6开始引入了class类，类的本质还是一个函数function，可以简单认为类是构造函数的另一种写法
+跟构造方法相同，类也有原型对象，原型对象有构造函数属性，也可以通过原型对象添加方法，创建的实例也有__proto__属性
+
+ES5对于基础对象提供的新方法：
+数组：
+    forEach()遍历方法 arr.forEach(function(value, index, array) {...})
+    filter()筛选方法 array.filter(function(currentValue, index, arr) {...}) 直接返回一个新的数组
+    map()创建一个新数组，新数组的每一个元素都是调用了一次回调函数后的结果
+    比如 var newArray = arr.filter(function(currentValue, index, array) {return currentValue >= 20;})
+    some()查找是否有满足指定条件的元素，找到第一个就停止，返回值布尔值，语法同上
+    filter和forEach遇到return也不会中止迭代
+字符串：
+    trim()方法，去除字符串两端的空白字符，不影响原字符串，返回的是新字符串
+对象：
+    Object.keys(obj)回去对象自身有的所有属性，返回由属性名组成的数组
+    Object.defineProperty(obj, prop, descriptor)定义对象新属性或者修改原有属性
+    descriptor属性是一个对象，里面可以有四种属性：
+        value（有就修改无则添加，默认是undefined）
+        writable（是否可以修改默认false）
+        enumerable（是否可以被枚举默认false）比如说遍历Object.keys()不能得到这个属性
+        configurable（是否可以被删除或者修改特性默认false）
+
+函数部分：
+    使用new Function()创建函数时，小括号内部是字符串，参数和函数体都在字符串内，先写参数后写函数体
+    所有函数都是Function的实例对象，函数也属于对象 函数内部的this指向可以参见8.1-8.7截图
+    普通的函数的this指向是window，调用的时候简写了window，本身应该是window.fn()
+    改变this指向的方法call() bind() apply()
+    apply的使用 func.apply(thisArg, [argsArray])传参必须写在数组（伪数组也行）里面，thisArg写null就不改变，返回值就是本身该返回的值
+p56
