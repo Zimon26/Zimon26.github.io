@@ -812,15 +812,16 @@ ES5对于基础对象提供的新方法：
     some()查找是否有满足指定条件的元素，找到第一个就停止，返回值布尔值，语法同上
     filter和forEach遇到return也不会中止迭代
 字符串：
-    trim()方法，去除字符串两端的空白字符，不影响原字符串，返回的是新字符串
+    trim()方法，去除字符串两端的空白字符，包括空格换行制表等，不影响原字符串，返回的是新字符串
 对象：
     Object.keys(obj)回去对象自身有的所有属性，返回由属性名组成的数组
-    Object.defineProperty(obj, prop, descriptor)定义对象新属性或者修改原有属性
-    descriptor属性是一个对象，里面可以有四种属性：
+    Object.defineProperty(obj, prop, descriptor)定义对象新属性或者修改原有属性 **属性本身就可以添加，主要应该是在于属性的修改和特性的调整**
+    这个方法的使用对象是直接针对于构造函数，也就是类名而不是实例对象
+        descriptor属性是一个对象，里面可以有四种属性：
         value（有就修改无则添加，默认是undefined）
-        writable（是否可以修改默认false）
+        writable（属性的值是否可以修改默认false）
         enumerable（是否可以被枚举默认false）比如说遍历Object.keys()不能得到这个属性
-        configurable（是否可以被删除或者修改特性默认false）
+        configurable（属性是否可以被删除或者修改特性默认false）
 
 函数部分：
     使用new Function()创建函数时，小括号内部是字符串，参数和函数体都在字符串内，先写参数后写函数体
@@ -829,3 +830,296 @@ ES5对于基础对象提供的新方法：
     改变this指向的方法call() bind() apply()
     apply的使用 func.apply(thisArg, [argsArray])传参必须写在数组（伪数组也行）里面，thisArg写null就不改变，返回值就是本身该返回的值
 p56
+
+### 8.7
+接函数部分：
+    bind()不会调用函数，但是可以修改函数的this内部指向，语法跟call相同，返回值是由指定的this和初始化参数改造的原函数拷贝
+    一般情况下参数是不写的，仅仅用这个来修改this的指向，比如本身func()的this指向的是window，写var fn = func.bind(obj)换绑
+严格模式 strict mode:
+    严格模式可以为整个脚本开启或者给个别函数开启，为脚本开启就在开头写 'use strict'; 为某个函数开启就放在函数体开头部分
+    严格模式下变量必须先声明再赋值，不能使用delete删除已经声明的变量，**全局作用域下的函数的this是undefined**
+    构造函数必须使用new调用，new实例化的构造函数还是指向创建的对象实例
+高阶函数 对其他函数进行操作的函数（接收函数作为参数，将函数作为返回值输出）：
+    回调函数的常见写法 callback && callback() 利用与的短路特性
+闭包 有权访问另一个函数作用域中变量的函数：
+    闭包实现的重点是返回一个函数，这个函数相当于另一个函数的内部函数，导致在外部调用这个函数可以拿到另一个函数作用域中的变量
+    主要作用是延伸变量的作用范围
+深浅拷贝：
+    浅拷贝拷贝本层，更深层次对象只拷贝引用，深拷贝拷贝全部
+    使用for循环的拷贝就是浅拷贝 ES6新增语法糖Object.assign(target, source)
+    深拷贝可以使用函数递归实现，分为三种数组，对象，基础数据类型
+p76
+
+### 8.10
+正则表达式：主要用于匹配字符串内容，替换字符串内容，从字符串中提取内容
+    在js中正则表达式是作为一种对象的
+    创建正则表达式有两种方法
+        1 调用对象RegExp对象的构造函数创建 var regexp = new RegExp(/表达式/);
+        2 利用字面量创建正则表达式 var regexp = /表达式/;
+    正则表达式的对象方法：
+        regexpObj.test(str)，验证字符串是不是符合正则的规范，返回true或false
+
+正则表达式的特殊字符：
+    边界符：提示字符出现的位置
+        ^ 表示匹配行首的文本 /^abc/ 必须以abc开头
+        $ 表示匹配行尾的文本 同上 可以连用实现精确匹配 /^abc$/ 必须是abc
+    字符类：有一系列字符可以选择，匹配其中一个就行
+        [] /[abc]/ 有abc三个任意一个就行
+        [-] 方括号内的短横线表示范围 /[a-zA-Z0-9_]/ 有大小写字母，数字或者下划线就行
+        [^] 方括号里面的^表示取反 /[^a-z]/ 不能包含小写字母 **和中括号外面的区分开**
+    量词符：用于设定某个模式出现的次数
+        * 重复>=0次 /^a*$/ 开头可以没有a，也可以很多a，空或者很多a，其他不行
+        + 重复>=1次 /^a+$/ a或者很多a
+        ? 重复0/1次 /^a?$/ 空字符串或者就一个a
+        {n} 重复n次
+        {n,} 重复>=n次
+        {n.m} 重复n-m次
+p85
+
+### 8.11
+接正则表达式：
+    三种括号的使用：
+        []中括号表示字符集合，匹配中括号里面的任意一个字符即可
+        {}限制的区域是前一个字符，/^abc{3}$/ 满足这个正则表达式只能是abccc
+        ()小括号可以提升优先级比如 /^(abc){3}$/ 这个只能是abcabcabc
+    预定义类：
+        \d 匹配0-9任意数字
+        \D 匹配非0-9
+        \w 匹配任意字母数字下划线
+        \W 匹配非数字字母下划线
+        \s 匹配空格类，包括换行符，制表符
+        \S 非空格类
+    正则的或者运算符 |
+    正则表达式参数：
+        写在两个//后面[switch]，有三种值 g全局匹配 i忽略大小写或者gi一起写 比如/.../g
+    字符串的replace方法第一个参数除了写要被替换的字符串，还可以写正则表达式
+
+**ES6-ES11**
+let关键字声明变量的特点：
+    1 不能重复声明，如果用var可以
+    2 提供新的块级作用域，防止外层用var声明的变量都添加到全局window，**所谓的块级作用域就是一对大括号**
+    3 不存在变量提升，不声明先使用会报错
+    可以在for里面使用，限制于for的块级作用域
+
+const关键字声明常量：
+    1 必须赋初值，并且不能修改，**重点是内存地址不能修改**
+    2 同样块级作用域
+    3 对于数组内部元素，对象内部属性的修改不算对常量的修改，允许
+
+变量解构赋值：
+    可以创建连续变量匹配数组中的值，比如const arr = [1, 2, 3]; let [one, two, three] = arr;
+    对象需要属性名完全相同，如果想不一样就要写别名比如 let {name: myname, age: myage} = obj;
+    主要可以便于频繁调用，解构出来的对象方法可以省去调用方法需要先加对象的问题
+
+模板字符串：
+    除了单双引号还可以使用反引号`` 好处是内容可以直接添加换行符以及使用${}把变量或者函数直接拼接进去字符串
+
+对象的简化写法：
+    外层已经有let name = 'jack'; let age = '20' 那么可以直接let person = {name, age}
+    等效内部 {name: name, age: age} 方法也可以省略function写到里面
+
+箭头函数:
+    语法格式：
+        let fn = (参数列表) => {函数体};
+    **找this最简单的方法是找箭头函数外层有没有函数，没有就是window，对象不产生作用域**
+    主要特点：
+    1 this静态，this始终指向函数声明时所在的作用域下this的值
+    2 不能作为构造函数实例化对象
+    3 不能使用arguments变量，没有prototype属性，不能用箭头函数写生成器函数
+    形参有且只有一个可以省略小括号，比如 let add = n => {...};
+    函数体只有一句可以省略大括号，但是必须也省略return 比如 let pow = n => n*n;
+    箭头函数适合与this无关的回调，比如定时器，数组方法等，不适合事件回调，对象方法这种this需要动态变化的
+    箭头函数的this始终指向定义箭头函数的对象，指向定义的箭头函数那一级块级作用域的this
+
+函数参数可以赋初值：一般有默认值的参数放后面
+    function add(a, b, c=10) {...}
+
+rest参数获取不定实参：
+    替代arguments，使用arguments获取的不定实参是对象而rest参数获得的是数组，更加方便
+    语法格式 function data(name1, ...args) {...} data('jack', 'sam', 'peter') 获取的是'sam', 'peter'构成的数组
+    因为获取的是最后不定长的参数列表，rest参数必须放最后，并且参数名前面添加...
+
+扩展运算符...让数组转化为逗号分割的参数序列：
+    fn(...array_name)，把数组每个元素分开都传进fn函数
+    rest参数的...放在函数的声明位置，扩展运算符的...放在函数的调用位置
+    提供了简单的合并数组方法 arr = [...A, ...B]
+    克隆数组的方法（浅拷贝） A_copy = [...A];
+    伪数组转数组的方法 divs_arr = [...divs];
+
+新的原始数据类型Symbol
+    最主要的意义是生成绝对独一无二的值
+    1 唯一的，用于解决命名冲突
+    2 不能和其他数据进行运算
+    3 定义的对象属性不能使用forin循环遍历，可以使用Reflect.ownKeys获取对象的所有键名
+    主要作用是给对象添加方法
+p18
+
+### 8.12
+**深水区进度放缓**
+迭代器：一种接口，为各种不同的数据结构提供统一的访问机制，任何数据结构部署iterator接口板就可以完成遍历
+    原生具有iterator接口的数据：Array Arguments Set Map String TypedArray NodeList
+    迭代器一般配合forof方法使用，forin循环变量保留的是键名，而forof保留的是键值
+    forof会自动调用迭代器Symbol.iterator
+生成器：用于解决异步
+    语法是function * fn() {...} 函数体里面可以写yield进行分隔，每次迭代器执行一次进行一段分隔的代码
+
+Array扩展方法：
+    转化伪数组的第二种方法 Array.from(伪数组)返回值为转换后的数组，伪数组后还可以添加函数实现比如说全部*2
+    Array.find()里面的参数是查找条件的函数，找到第一个满足条件的就返回，没有就返回undefined，而some是返回真假
+    Array.findIndex()找第一个符合条件的数组成员的索引，没有就返回-1
+    Array.includes(value)找数组中是否有value值，返回真假，相比some功能更简单
+
+### 8.13
+字符串扩展方法：
+    String.startsWith(str) / String.endsWith(str) 参数字符串str是否在开头或者结尾，返回真假
+    String.repeat(n) 将原字符串重复n次返回新字符串
+
+Set数据结构：类似于数组但是成员都是唯一的
+    直接使用构造函数生成Set数据结构 const s = new Set(1, 2, 3)
+    自带属性有size，相当于length，构造函数也可以直接传入数组，传入的数组自动去重
+    自带方法add(value)返回set本身 delete(value)返回真假是否删除成功 has(value)返回真假 clear()无返回值
+    forEach方法对每个成员执行一些操作，没有返回值
+
+ES6浏览器中，使用let在块级作用域声明函数存在变量提升，类似于var，这个特殊规定仅限于ES6浏览器，**最好尽量不在块级作用域声明函数**
+//函数声明类似于var，即会提升到全局作用域或函数作用域的头部。同时，函数声明还会提升到所在的块级作用域的头部
+实在需要可以在块级作用域写函数表达式类似 let fn = function() {...};
+在纯块级作用域前面可以添加do，替代部分简单函数的功能，返回值是块级作用域最后一条语句的结果
+想要完全锁死一个对象，使用Object.freeze(obj)，返回值也是obj
+在顶级作用域的使用var或者function声明的变量直接添加到顶级对象window的属性，而使用let或const只创建全局变量，不添加到顶级对象
+关于解构赋值：
+    只要某种数据结构具有Iterator接口，都可以采用数组形式的解构赋值，解构赋值也可以有默认值，但是只有是undefined的时候才会采用默认值
+    解构赋值的规则是，只要等号右边的值不是对象或数组，就先将其转为对象。由于undefined和null无法转为对象，所以对它们进行解构赋值时都会报错。
+
+字符串扩展方法2：
+    str.padStart(length, str2) / str.padEnd(length, str2) 用str2在首/尾补充str到length长度，如果省略str2参数就使用空格
+
+数值类型的扩展方法：
+    Number.isFinite() 判断是否是有限的以及是否是数字，返回真假
+    Number.isNaN() 判断是否是NaN
+    Number.parseInt() / Number.parseFloat() 和自带的全局parse函数完全相同
+    Number.isInteger() 判断是否是整数
+    Number.EPSILON 一个极小的常量数量级为10的-16次方，一般用于检测浮点值的精度
+    JavaScript能够准确表示的整数范围在 -2的53次方 到 2的53次方 之间（不含两个端点），超过这个范围就无法精确表示，为此提供方法Number.isSafeInteger()
+    ES6引入了Number.MAX_SAFE_INTEGER和Number.MIN_SAFE_INTEGER两个常量，用来表示这个范围的上下限
+    新增指数运算符 ** 比如 2 ** 2 = 4
+
+函数：
+    函数添加了默认参数后参数本身会形成一个作用域，找不到会到外层去找而不是函数体
+
+### 8.14
+接函数：
+    通过抛出错误的方法可以指定某个函数的参数是必须写的
+    函数的length属性不包括rest参数
+    规定只要函数参数使用了默认值、解构赋值或者扩展运算符，那么函数内部就不能显式设定为严格模式，否则就会报错
+    上述的严格模式有两种解决方法，全局使用严格模式或者把函数放在一个无参数的立即执行函数中
+外出旅游...
+
+### 8.17
+普通for循环的迭代常量因为会不断修改所以不能使用const，但是对于forin或者forof这样每次都在修改的变量还是可以使用const
+类似于instanceof运算符，typeof运算符也会返回变量的类型，null返回Object 
+只是以字符串的方式返回7种数据类型（包括Symbol的简单数据类型和包括数组的Object类）
+基础六种数据类型undefined null boolean number String Symbol 一种复杂数据类型Object常见的包括数组函数等
+判断是否是NaN的方法不是if(value == NaN)因为NaN不等于任何值包括NaN，必须使用方法isNaN()
+除了null和undefined都有toString方法，转化为和原始值等价的字符串，更为通用可以使用String()转型函数，实际上还是会调用toString
+创建Symbol类型使用Symbol()方法，这个方法传入的参数字符串仅仅用于描述，与实际的值无关
+Symbol.for(key)方法，根据传入的key字符串键值，在全局符号表内找符号，有就返回，没有就创建后返回，跟直接Symbol()创建的区别在于全局
+全局注册表中的符号必须使用字符串键来创建，使用Symbol.keyFor(symbol)根据传入的符号返回全局符号对应的字符串键，没有返回undefined
+
+### 8.25
+除了直接添加Symbol变量的属性，还可以使用defineProperty()添加属性
+Object.getOwnPropertyNames()返回对象实例的常规属性数组，Object.getOwnPropertySymbols()返回对象实例的符号属性数组。这两个方法的返回值彼此互斥
+Object.getOwnPropertyDescriptors()会返回同时包含常规和符号属性描述符的对象，值是什么也会返回
+Reflect.ownKeys()会返回两种类型的键，类似于Object.keys()但是不会受enumerable的影响，Reflect是一个内置对象，主要可以替代Object类对对象进行操作
+Reflect实现反射，使得程序可以在运行时获取自己的信息
+ES6也引入了一批常用内置符号（well-known symbol），用于暴露语言内部行为，可以直接访问、重写或模拟这些行为
+这些内置符号都以 Symbol 工厂函数字符串属性的形式存在，所有内置符号属性都是不可写、不可枚举、不可配置的
+常用内置符号有很多，比如Symbol.iterator，修改这个属性对应的函数就可以修改forof循环的迭代过程
+每个 Object 实例都有如下属性和方法。
+    constructor：用于创建当前对象的函数
+    hasOwnProperty(propertyName)：用于判断当前对象实例（不是原型）上是否存在给定的属性。要检查的属性名必须是字符串（如 o.hasOwnProperty("name")）或符号
+    isPrototypeOf(object)：用于判断当前对象是否为另一个对象的原型
+    propertyIsEnumerable(propertyName)：用于判断给定的属性是否可以使用for-in 语句枚举。与 hasOwnProperty()一样，属性名必须是字符串
+    toLocaleString()：返回对象的字符串表示，该字符串反映对象所在的本地化执行环境
+    toString()：返回对象的字符串表示
+    valueOf()：返回对象对应的字符串、数值或布尔值表示。通常与 toString()的返回值相同
+因为在 ECMAScript 中 Object 是所有对象的基类，所以任何对象都有这些属性和方法
+
+逻辑与&&并不一定会返回布尔值，而是遵循如下规则
+    如果第一个操作数是对象，则返回第二个操作数
+    如果第二个操作数是对象，则只有第一个操作数求值为 true 才会返回该对象
+    如果两个操作数都是对象，则返回第二个操作数
+    如果有一个操作数是 null，则返回 null
+    如果有一个操作数是 NaN，则返回 NaN
+    如果有一个操作数是 undefined，则返回 undefined
+
+### 8.26
+与逻辑与类似，如果有一个操作数不是布尔值，那么逻辑或||也不一定返回布尔值，它遵循如下规则
+    如果第一个操作数是对象，则返回第一个操作数。
+    如果第一个操作数求值为 false，则返回第二个操作数。
+    如果两个操作数都是对象，则返回第一个操作数。
+    如果两个操作数都是 null，则返回 null。
+    如果两个操作数都是 NaN，则返回 NaN。
+    如果两个操作数都是 undefined，则返回 undefined
+使用==对比时，null和undefined是相等的，因为==默认会加入转换的操作，所以一般使用===更为保险
+例如使用==时，55和'55'是相等的，这个时候就必须使用===
+
+**AJAX**
+可以在浏览器中向服务器发送异步请求，可以用于在无刷新的情况下获取或发送数据，比如动态请求数据
+XML与HTML类似，不同的是HTML都是预定义标签，XML中的标签都是自己定义的，没有预定义标签，XML设计用来传输和存储数据
+目前AJAX的信息传递一般不再选用XML格式，转为使用JSON
+AJAX的缺点是无浏览历史，不可回退，存在跨域问题，SEO不友好
+p5
+
+### 8.27
+HTTP的请求报文：
+    重点是格式和参数
+    格式是 行\n头\n空行\n体
+    行的格式 GET/POST url HTTP协议版本号
+响应报文：
+    行的格式 HTTP协议版本号 状态码 状态码对应字符串
+    响应体里面就是HTML内容
+p13
+
+### 8.31
+HTTP的请求都在xhr的方法中设置，xhr.open()方法设置GET/POST选项以及URL地址
+xhr是XMLHttpRequest的简称，发送参数的时候使用xhr.send()比如xhr.send('a=100&b=100&c=100')
+xhr.setRequestHeader(请求头名, 请求头值)
+通过直接设置xhr.responseType = 'json';可以不需要使用JSON对象下的转换方法
+AJAX p17
+**同步开始进行vue**
+webpack可以自动转化兼容性代码，代码压缩混淆一类的问题
+npm下载的选项，-S是--save的简写，-D是-- save-dev的简写，只在开发阶段使用的包用这个
+配置webpack的流程：
+    1 项目的根目录创建webpack.config.js配置文件
+    2 package.json的script节点下新增dev脚本
+    3 终端运行npm run dev命令，启动webpack进行项目打包构建
+webpack.config.js中配置的mode有两个选项分别是development和production对应开发和实际上线
+把mode选项改成production生成的main.js就自动变成经过压缩的
+执行npm run dev后会生成一个新的目录dist，里面的main.js才是webpack处理后的js文件
+封存尚硅谷AJAX p17 黑马vue p8 应该先把node.js学完再转vue，明天开始转nodejs，预算时间大概1周，最晚9.10中秋之前
+
+### 9.1
+浏览器中的js主要有两部分组成，JS核心语法和WebAPI
+node运行环境包括V8引擎和内置API（和WebAPI不同），所以在node中不能调用DOM，BOM，AJAX的APInode
+node基本实现了所有的ES6新特性，但是在模块的引入和导出过程中选用COMMONJS规范
+新的node版本require不再内置，使用需要添加如下的代码：
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+实际上添加了这两行代码还是有一些问题，将文件后缀改为.mjs就可以成功了，强制使用ES6规范
+
+fs模块：
+    node提供的可以操作文件的模块
+    使用前需要先导入 const fs = require('fs'); require是commonjs的规范
+    fs.readFile(path[, options], callback)
+        **options表示以什么类型的编码格式来读取文件，这个默认情况下不是utf8，一般情况下需要指定**
+        callback回调函数有两个参数err和dataStr对应的是读取成功和失败，读取失败err值是错误对象，dataStr是文件的内容
+        通过判断err是否是null就可以确定是否读取成功，如果成功一定是null，如果读取失败可以使用err.message获取失败的消息
+    fs.writeFile(file, data[, options], callback)
+        file参数指定一个文件路径的字符串，data表示写入的内容，options表示什么编码类型，默认utf8
+        回调函数参数只有err，记录写入的错误对象，也可以用来查看是否写入成功
+    使用./或者../这种相对路径容易出现路径拼接的问题，代码运行的时候以执行node命令这一层的目录动态拼接出路径
+    **为了解决上述的问题，除了使用绝对路径以外，还可以添加node的成员__dirname表示当前文件所在的目录，然后进行路径的拼接**
+
+path模块：
+    path.join()方法可以实现路径的拼接，对参数的个数不限，返回值就是拼接好的路径
+    path.basename()方法可以从路径字符串中将文件名解析出来
