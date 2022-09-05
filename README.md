@@ -1119,7 +1119,117 @@ fs模块：
         回调函数参数只有err，记录写入的错误对象，也可以用来查看是否写入成功
     使用./或者../这种相对路径容易出现路径拼接的问题，代码运行的时候以执行node命令这一层的目录动态拼接出路径
     **为了解决上述的问题，除了使用绝对路径以外，还可以添加node的成员__dirname表示当前文件所在的目录，然后进行路径的拼接**
+    **在使用__dirname之前需要添加const __dirname = path.resolve()声明**
 
 path模块：
     path.join()方法可以实现路径的拼接，对参数的个数不限，返回值就是拼接好的路径
-    path.basename()方法可以从路径字符串中将文件名解析出来
+    path.basename(path[, ext])方法可以从路径字符串中将文件名解析出来，第一个参数是路径字符串，第二个可选参数表示文件扩展名
+    返回值是最后文件的名，如果有ext参数会省略最后的文件后缀
+    path.extname(path)获取路径字符串最后文件的后缀扩展名，返回值比如.html
+正则表达式的成员方法regexp.exec(str)，捕获所有满足正则表达式的部分，构成数组，没有的话返回null
+p14
+
+### 9.2
+http模块是node提供的可以创建web服务器的模块，主要是使用http.createServer()
+计算机网络端口号的概念，在一台服务器中可能运行大量的web服务，每一个服务都对应一个唯一的端口号，客户端送来的请求通过端口号到对应的web服务
+实际使用过程中80号端口可以省略，默认情况下就是使用的80端口
+**创建web服务器的基本步骤：**
+    导入http模块
+    创建web服务器实例 http.createServer()
+    为服务器实例绑定request事件，监听客户端请求 server.on('request', (req, res) => {})
+        只要服务器接收到客户端的请求就会调用on绑定的回调函数
+        req是请求对象，包含客户端的数据和属性，比如req.url请求的地址是什么 req.method请求的http方法
+        向客户端相应内容是res.end()方法，里面的参数可以直接是html字符串
+        解决中文显示乱码的问题：res.setHeader('Content-Type', 'text/html; charset=utf-8')
+    启动服务器
+根据不同的url请求相应不同的html内容：根据req.url通过res.end()返回不同的内容：
+默认响应内容是404，判断req.url是/或者/index.html则返回主页，是/about.html则返回关于页面
+let fpath = path.join(__dirname, req.url);
+fs.readFile(fpath, 'utf8', (err, dataStr) => {};
+上述情况一定不要不写req.url，直接写index.html这种不会请求到关联的css和js资源，导致页面只有html
+html关联css和js，这两个文件也必须被请求从硬盘中读取到，并且不会res.end()自动显示出来
+
+node模块化：
+
+根据模块来源的不同，将模块分为三种：内置模块，自定义模块，第三方模块
+
+加载模块：
+    旧的方法是require，跟import差不多，如果是自定义的模块要写出相对路径，.js的后缀名可以省略
+    使用require方法加载模块的时候，模块里面的代码会执行
+模块之中也有模块作用域，自定义模块中的变量方法等成员都只能在当前模块内中访问
+
+向外共享模块中的成员：
+    每个自定义模块中都有module成员，记录了和当前模块有关的信息
+    module.exports对象中存放了共享的成员，导入模块的时候比如import m from 'm'得到的就是module.exports默认状态是空对象
+    为了简化node提供了一个新的对象exports，和module.exports指向是一样的，但是实际使用还是以module.exports为准
+    CommonJS的规定：
+        每个模块内部，module变量代表当前模块
+        module变量是一个对象，它的exports属性，即module.exports是对外的接口
+        加载某个模块，其实是加载该模块的module.exports属性，require()用于加载模块
+p26
+
+### 9.3
+不同于内置模块和自定义模块，包是由第三方团队开发的，下载包使用npm，网站是npmjs.com
+npm公司提供了包管理工具npm，npm工具集成在node中
+
+安装包使用命令npm i 包名称，其中i是install的简写，安装完包就可以使用import或者require导入包
+在初次安装完包后项目文件夹下会多一个node_modules的文件夹和package-lock.json配置文件
+    **node_modules文件夹存放所有已经安装到项目中的包，导入包的时候就从这个目录查找加载**
+    **package-lock.json配置文件用来记录node_modules目录下每个包的下载信息，例如包名，版本号，下载地址等等**
+    一般情况下不要手动修改这两个，npm会自动维护
+
+默认情况下安装的是最新版本的包，在包名后添加@版本号就可以添加指定版本的包
+
+npm规定，在项目的根目录必须提供package.json的包管理配置文件，记录与项目有关的一些配置信息，比如如下的信息：
+    项目名称，版本号，描述等
+    项目中使用了哪些包
+    哪些包只在开发阶段使用
+    哪些包在开发和部署的时候都需要使用
+**快速创建package.json使用命令npm init -y 安装包的时候npm会自动把包名称和版本号记录到package.json中**
+**package.json中有dependencies节点，专门用来记录使用npm install安装了哪些包**
+在有package.json的情况下，直接使用npm i就可以直接根据package.json的dependencies节点直接下载
+
+运行npm uninstall 包名 可以卸载指定的包，并且package.json也会自动修改
+
+package.json中还有devDependencies节点，用于存放只在项目开发阶段使用的包
+**使用npm i 包名 -D或者--save-dev就可以自动记录到devDependencies节点中**
+
+使用npm config set registry=https://registry.npm.taobao.org/ 可以切换下包地址是淘宝的镜像源
+另一种方法也可以使用nrm工具，先使用npm下载nrm，然后nrm ls显示可用镜像，nrm use taobao即可切换
+
+被安装的到node_modules目录的包都是项目包，而在执行npm i时添加-g参数的话就会安装全局包
+全局包被安装到C:\Users\zzm\AppData\Roaming\npm\node_modules，判断是否需要全局安装可以参考npmjs官网的说明
+
+包的内部结构：
+    包必须以单独目录存在
+    包的顶级目录下必须包含package.json这个包管理管理配置文件
+    package.json中必须包含name version main三个属性，分别代表包名，版本号，包的入口
+    main属性就是在包顶层目录，指定去找哪个js文件作为包的源代码，比如'index.js'意思就是 包顶层目录/index.js 是入口
+
+在包的根目录使用npm publish命令就可以把包发布到npm上
+使用npm unpublish 包名 --force可以撤销已经发布的包
+
+模块的加载默认是从缓存中出来，内置模块有最高的优先级，如果同名，先加载内置模块
+自定义模块先加载原文件名，再补.js，再.json，再.node，还是没有就会报错
+第三方模块先在node_modules里面找，找不到的话会一级一级沿目录往上走
+如果把目录作为模板标识符使用require加载，先找package.json的main，没有的话找index.js还是没有就会报错
+
+node p38 正式开始Express，可能需要绕回去学ajax
+
+### 9.5
+URL地址的三个组成部分
+    客户端和服务器的通信协议
+    存有该资源的服务器名称
+    资源在服务器上具体的存放位置
+
+在网页中请求服务器的数据资源，会使用到XMLHttpRequest对象，xhr是浏览器提供的js成员
+
+客户端对服务器的请求：获取资源get，发送资源post
+使用jquery操作ajax相对简单，提供了三个函数
+    $.get(url, [data], [callback]) 请求资源地址，请求资源时携带的参数对象，请求资源成功的回调函数
+        参数比如{id = 1}就只会返回id是1的系列数据，回调函数function(res) {} 其中的res就是请求回来的资源
+    $.post(url, [data], [callback]) data是传给服务器的对象，其他相同
+        回调函数function(res) {} 其中的res是传输后的返回值，可以看出传输的状态
+    $.ajax({type, url, data, callback})传入的是配置对象，四个参数是配置对象的成员
+        type是'get'或者'post'，其他相同
+ajax p11
