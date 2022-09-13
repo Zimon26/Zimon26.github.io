@@ -1134,14 +1134,14 @@ http模块是node提供的可以创建web服务器的模块，主要是使用htt
 计算机网络端口号的概念，在一台服务器中可能运行大量的web服务，每一个服务都对应一个唯一的端口号，客户端送来的请求通过端口号到对应的web服务
 实际使用过程中80号端口可以省略，默认情况下就是使用的80端口
 **创建web服务器的基本步骤：**
-    导入http模块
-    创建web服务器实例 http.createServer()
-    为服务器实例绑定request事件，监听客户端请求 server.on('request', (req, res) => {})
+    1 导入http模块
+    2 创建web服务器实例 http.createServer()
+    3 为服务器实例绑定request事件，监听客户端请求 server.on('request', (req, res) => {})
         只要服务器接收到客户端的请求就会调用on绑定的回调函数
         req是请求对象，包含客户端的数据和属性，比如req.url请求的地址是什么 req.method请求的http方法
         向客户端相应内容是res.end()方法，里面的参数可以直接是html字符串
         解决中文显示乱码的问题：res.setHeader('Content-Type', 'text/html; charset=utf-8')
-    启动服务器
+    4 启动服务器
 根据不同的url请求相应不同的html内容：根据req.url通过res.end()返回不同的内容：
 默认响应内容是404，判断req.url是/或者/index.html则返回主页，是/about.html则返回关于页面
 let fpath = path.join(__dirname, req.url);
@@ -1227,9 +1227,428 @@ URL地址的三个组成部分
 客户端对服务器的请求：获取资源get，发送资源post
 使用jquery操作ajax相对简单，提供了三个函数
     $.get(url, [data], [callback]) 请求资源地址，请求资源时携带的参数对象，请求资源成功的回调函数
-        参数比如{id = 1}就只会返回id是1的系列数据，回调函数function(res) {} 其中的res就是请求回来的资源
+        参数比如{id = 1}就只会返回id是1的系列数据，**回调函数function(res) {} 其中的res就是请求回来的资源**
     $.post(url, [data], [callback]) data是传给服务器的对象，其他相同
-        回调函数function(res) {} 其中的res是传输后的返回值，可以看出传输的状态
-    $.ajax({type, url, data, callback})传入的是配置对象，四个参数是配置对象的成员
-        type是'get'或者'post'，其他相同
+        **回调函数function(res) {} 其中的res是传输后的返回值，返回的对象实际上由服务器决定，可以看出传输的状态**
+    $.ajax({method, url, data, callback})传入的是配置对象，四个参数是配置对象的成员
+        method是'get'或者'post'，其他相同，配置对象里面最常用的回调函数就是名为success的函数
 ajax p11
+
+### 9.6
+某些情况下新增的元素可以通过绑定其父元素为其绑定事件，比如使用on方法$(selector).on(event, childSelector, data, function)
+对于html的audio标签，只要指定了新的src属性，并且带有autoplay属性，就会自动播放
+
+**form的html属性**
+form标签用于采集数据，form标签的属性用来规定如何把采集的数据发送到服务器
+主要有四个html属性：
+    action 值就是url地址 如果不指定就是当前页面本身，当表单提交后，会自动跳转到action url对应的地址
+    method get/post 规定以什么方式把表单提交到action url **表单都是提交，get数据参数直接放在地址栏，而post是隐藏的**
+    enctype 规定在发送表单数据之前应该如何对其编码
+        application/x-www-form-urlencoded（默认）发送前就编码数据
+        multipart/form-data 不对字符编码，**表单包含文件控件就需要使用这个**
+        text/plain 空格转换为+ 特殊字符不转码 很少使用
+    target _blank新窗口/_self当前窗口/_parent/_top/framename 规定在什么地方打开action url
+
+因为表单提交数据会导致页面跳转等问题，一般表单负责收集数据，提交过程使用ajax
+使用ajax操作表单的操作：
+    1 表单的提交对应submit事件，可以直接使用form.submit(callback)或者使用form.on('submit', callback)
+    2 使用e.preventDefault()清除表单的默认提交行为，在callback中使用
+    3 .serialize()可以一次性获取表单的全部数据，需要表单每一项都有name属性，获取到的格式是username=jack&pwd=123这种
+    4 使用$('#form')[0].reset()重置表单 因为reset是原生js对象的方法，需要将jquery对象转化为原生对象
+p27
+
+### 9.7
+使用模板引擎可以减少数据渲染过程中的重复操作，常用的模板引擎是art-template
+使用前先导入对应的js源代码，然后使用template(模板字符串的id，渲染的数据)
+模板指定的方法是<script type='text/html' id="template"><h1>{{name}}</h1></script>
+    **模板的重点就是script里面的type是text/html，以及id属性，{{name}}表示占位符，之后要填数据**
+    传入的第二个参数渲染的数据是一个对象，对象里面是上面name类似的属性键值对
+    template方法的返回值就是渲染完毕的字符串，把这个字符串给需要渲染的地方即可
+art-template的标准语法就是{{}}，可以填写变量，对象属性，以及可以求出值的表达式
+    如果{{}}中需要渲染新的html元素，那就需要在变量前添加@表示原文输出
+    如果有判断条件可以使用if else if /if 使用的时候中间的内容是需要渲染的，而条件if else if /if等放在{{}}中
+    可以使用{{each arr}} {{/each}}中间的{{$index}}{{$value}}表示循环项的索引和值
+    过滤器语法{{value | filterName}}类似于linux的管道操作符
+        template.defaults.imports.filterName = function(value) {return 处理的结果}
+
+之前记录过正则表达式的exec方法，实际上exec方法很类似于test方法，只是test返回布尔值，而exec返回直接符合的内容
+**exec的返回值是一个数组，数组的[0]是匹配到的值，[1]是分组后再筛选的结果**
+在正则表达式中使用()包起来表示分组，分组可以用于exec的检索
+p39
+
+### 9.8
+使用xhr发起get请求的步骤：
+    1 创建xhr对象
+    2 调用xhr.open('GET', url)函数，作用是创建请求
+    3 调用xhr.send()函数 不加参数，作用就是发起ajax请求
+    4 监听xhr.onreadystatechange事件，监听xhr请求状态readystate和服务器的响应状态status
+        正确情况是xhr.readystate === 4 && xhr.status === 200，随后获取服务器响应的数据xhr.responseText
+
+readystate用来表示ajax请求所处的状态，每个请求必然处于下列五个中一个
+    0 UNSENT xhr对象已经创建，还没有调用open方法
+    1 OPENED open方法已经调用
+    2 HEADERS_RECEIVED send已经调用，响应头也被接受
+    3 LOADING 数据接收中，此时response属性中已经包含部分数据
+    4 DONE ajax请求完成，意味着数据传输彻底完成或者失败，所以可以使用xhr.status判断是否成功
+提供带参数的get请求：只需要在url地址后添加?再加上参数即可，多个参数之间加&，在url地址后拼接的参数字符串被称为查询字符串
+实际上在之前使用的$.get()$.ajax(method: 'get')中，get方式传递的参数都是以查询字符串的方式传入的
+
+url编码，因为url中只允许出现英文相关的字母，标点符号，数字等，为了解决其他语言字符，需要进行编码转义
+编码和解码的api是encodeURI(字符串)和decodeURI(字符串)，一个汉字以三个%开始的编码组成，因为浏览器自动编码解码，一般不需要操作
+
+使用xhr发起post请求的步骤：
+    1 创建xhr对象
+    2 调用xhr.open('POST')
+    3 设置Content-Type属性 xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded') 这个是固定写法
+    4 调用xhr.send(查询字符串表示参数)，同时指定要发送的数据，这里的查询字符串不加?作为分隔符
+    5 监听xhr.onreadystatechange事件，与get相同，xhr.responseText是服务器返回的信息
+
+JSON的两种结构：**在JSON中字符串使用双引号包裹**
+    对象结构：对象结构在JSON中表示为{}括起来的内容，结构是键值对的集合
+        **其中key必须是英文双引号包裹的字符串，value可以是数字，字符串，布尔值，null，数组，对象，不包括undefined和函数**
+    数组结构，数组结构在JSON中表示为[]括起来的内容，只有value，同样可以是以上的六种类型
+JSON的本质是字符串，就是js对象的字符串表示方法
+
+JSON和JS对象的相互转换：
+    JSON -> JS对象 使用JSON.parse(JSON)，返回值就是JS对象 反序列化，**一般处理服务器返回的responseText这个JSON格式的文件**
+    JS对象 -> JSON 使用JSON.Stringify(JS对象)，返回值是JSON字符串 序列化
+
+**GET请求中参数是通过?查询字符串挂载到url从open方法传输的，而POST请求中参数是通过send方法传入查询字符串传输的**
+p49
+
+### 9.9
+xhr2.0解决旧版的一些问题：只能传输文本，不能传输文件以及传输没有进度的信息
+提供的新功能：
+    设置HTTP请求的时限 使用xhr的timeout属性，单位是毫秒，ontimeout事件可以处理超时
+    可以使用FormData对象管理表单数据 newFormData()，然后使用fd.append(key, value)方法添加，最后xhr.send(fd)
+        之前使用的form.serialize()一次性获取表单数据是jquery的方法
+        可以在form的submit事件处理函数中new FormData(form本身)，就可以直接在send中传输
+        使用FormData自动包括了Content-Type的设置
+    **可以上传文件**
+        1 创建文件上传结构，input标签，type设置为file
+        2 通过上传事件(可能是其他按钮的点击)，使用input_file.files属性获取文件
+        3 判断files属性中的length，如果大于0就有文件
+        4 使用fd.append(file_key, files[0])就可以上传文件，还是以属性名属性值的方式上传
+    可以获得数据传输的进度信息
+        监听xhr.upload.onprogress事件可以获取到文件的上传进度
+        这个事件对应的回调函数参数e中有三个属性：
+            e.lengthComputable 布尔值，表示上传的资源是否是可以计算的长度
+            e.loaded 已传输的字节
+            e.total 需传输的字节
+            使用Math.ceil(e.loaded / e.total * 100)即可计算文件的传输进度
+        xhr.upload.onload表示上传完成
+在html标签input中添加autocomplete="off"可以关闭自动填充的行为
+
+使用jquery实现文件上传：
+    1 创建文件上传结构，同原生
+    2 获取文件过程需要将jquery对象重新转化为原生对象
+    3 同原生，使用fd.append()添加文件
+    4 $.ajax({
+        method: 'POST',
+        url: ...,
+        data: fd,
+        contentType: false,
+        processData: false,
+        success: function(res) {
+            console.log(res);等
+        }
+    })
+    重点是中间两个属性
+    实现loading的效果：
+        当ajax请求开始时执行ajaxStart函数，可以在ajaxStart的callback中显示loading效果
+        $('document').ajaxStart(callback)这个函数必须写在文档身上，会监听当前页面的全部ajax请求
+        相应的也有ajaxStop(callback)，可以对应实现ajax请求完的操作
+    
+**使用axios完成网络请求**
+
+发起get请求 axios.get('url', {params: {参数}}).then(callback)
+    参数是一个对象，属于params属性，把这两个还要继续框起来，记住格式
+    callback中参数res，最后服务器的返回值是res.data，这个对应的就是传统方法的res.responseText
+    res是axios包装的对象，里面的属性有config data headers request status statusText这六个
+
+发起post请求 axios.post('url', {参数对象}).then(callback)
+    各项属性基本和上面相同，也是res.data代替了原生的res.responseText
+
+类似于ajax()的函数 axios({method: 'get/post', url: ..., data: {post的数据}, params: {get的数据} }).then(callback)
+在axios中有get和post给服务器的参数有区别，get是params，post是data，也就是说要么params要么data，不会同时出现
+
+
+同源和JSONP 关键词有Access-Control-Allow-Origin
+如果两个页面的协议域名端口号都相同，就称这个两个页面同源，区别就在于后续的url部分
+同源策略是浏览器提供的一个安全功能，大概就是一个网站的js不能和非同源的其他网站交互，不能发送ajax，不能操作dom等
+与同源对应的就是跨域，跨域请求本身可以发起，也会收到跨域的数据，但是收到的时候会被浏览器同源策略拦截
+
+解决跨域主要有两种方法：JSONP和CORS
+    JSONP出现早，但不是官方规范，且仅支持GET，好处是可以兼容低版本浏览器
+    CORS符合官方标准，支持GET和POST，但是不支持低版本浏览器
+
+JSONP的实现原理：script标签不受浏览器的同源策略的影响，可以使用src属性请求跨域接口，通过函数调用接受数据
+
+JSONP的使用方法：定义一个回调函数，通过script标签的src属性把回调函数名和参数通过查询字符串传入，让服务器执行这个回调函数，从而跳过跨域
+因为相当于发起的请求是script类型的，脚本请求默认只能是get，所以JSONP不支持post请求，也因为发送的是脚本，不使用xhr，JSONP和ajax无关
+
+**使用jquery中的$.ajax()也可以发送JSONP请求，其中传入的参数对象中需要设置dataType属性为JSONP，并且JSONP请求不需要指定method属性**
+默认情况下，使用jquery发送JSONP请求，查询字符串会自动携带一个callback=jQueryxxx的参数，是随机生成的回调函数名
+设置$.ajax()中的参数对象的jsonp属性可以修改查询字符串的callback名称，而修改jsonpCallback可以修改回调函数的名称
+jquery会根据JSONP动态创建和移除script标签，位置在header中
+p60
+
+### 9.10
+在jquery中，直接使用this是js原生对象，可以使用$(this)，这样就是jq对象可以使用jquery的方法
+虽然以前记过，但是暂时找不到位置了，边框重叠可以使用margin-left: -1px这种方法解决，如果盖住的问题可以选中的添加position: relative的属性等
+不知道为什么代码防抖不能实现，这个问题已经解决，原因是函数没有定义在jq顶级对象$中，其他函数拿不到顶层的参数
+ajax p69
+倒转回nodejs
+
+Express类似于内置的http模块，用于快速创建web网站服务器或者api接口服务器
+使用Express创建服务器的流程：
+    1 使用import或者require导入
+    2 const server = express();
+    3 server.listen(端口号, callback)
+
+监听get请求：
+    server.get(请求url, function(req, res) {})
+    req是请求对象，res是响应对象
+
+监听post请求：
+    server.post(请求url, function(req, res) {})
+
+响应请求：
+    使用res.send(参数) 参数如果是对象的话自动转化为json，所以说收到的是字符串json
+
+获取url中的查询字符串参数：
+    **通过req.query对象就可以访问到客户端通过查询字符串形式发送到服务器的参数**
+    获取到的是对象的参数列表，是对象的形式
+
+获取url中的动态参数：动态参数是跟在url后面使用:的参数
+    req.params对象可以访问到url中通过:匹配的动态参数，默认是空对象
+    **所谓的动态参数就是有什么是什么 比如代码中/user/:id，用户输入/user/1，那么params就是{id: 1}**
+    动态参数也可以有多个，多个的话params中键值对数量也是多个
+
+p40
+
+### 9.11
+托管静态资源：
+    express.static(指定目录)，可以将指定目录下的图片，css文件，js文件等对外支持开放
+    server.use(express.static('./public')) 可以访问public目录下的所有文件了
+    Express在指定的静态目录查找文件，对外提供资源的访问路径，所以本身存放静态文件的目录名，如public，不会出现在url
+    比如实际上public目录还是不能在url访问，但是public以下的所有都可以
+    也可以挂载路径前缀 server.use('./public', express.static('./public'))这样public就可以添加到url中了
+
+Express路由：
+    在Express中路由指的是客户端请求和服务器处理函数之间的映射关系
+    路由分为三部分：请求的类型，请求的url地址，处理函数 语法结构 server.METHOD(PATH, HANDLER)
+    之前的server.get/post(url, callback(req, res) {})等就是路由的例子
+    每一个请求到达服务器后都先经过路由的匹配，请求类型和url都匹配成功后才会调用对应的处理函数
+
+模块化路由：
+    为了方便对路由进行模块化的管理，Express不建议把路由直接挂载到server上，推荐将路由抽离为单独模块
+    步骤如下：
+        1 创建路由模块对应的js文件
+        2 调用express.Router()创建路由对象
+        3 向路由对象上挂载具体的路由
+        4 使用module.exports向外共享路由对象
+        5 使用server.use(router)注册路由 这一步是在主文件添加导入的路由使用
+            这一步也可以server.use('/api', router)添加访问前缀
+
+中间件：
+    作用就是对请求进行预处理，可以有很多个中间件
+    比如server.get('/', function(req, res, next)) {
+        next()
+    }
+    中间件的形参列表中必须包含req res next，是一个函数
+    next函数的作用可以实现多个中间件连续调用，表示把流转关系转交给下一个中间件或者路由，类似于链表
+
+全局生效的中间件：
+    客户端发起的任何请求到达服务器都会触发中间件，被称为全局生效的中间件
+    server.use(中间件函数)就可以定义一个全局生效的中间件，这个中间件任何的get/post请求都会触发执行
+    可以连续定义多个中间件函数，会按照定义的顺序依次执行
+
+中间件的特性：
+    **多个中间件之间共享同一份req res，可以在上游中间件统一为req或者res对象添加自定义的属性或者方法，供下游的中间件使用**
+    中间件也可以往模块化路由写，挂载的时候就是router.use(中间件函数)，主函数还是只需要server.use(router)
+
+局部生效的中间件：
+    **不使用server.use()的中间件就是局部中间件，作为参数添加到路由函数**
+    使用局部中间件要在路由函数中添加参数如server.get('/', middleware, function(req, res) {...})
+    使用多个局部中间件可以用逗号连续分隔，也可以直接打包成数组
+
+中间件的使用注意事项：
+    **路由之前注册中间件**
+    可以连续调用中间件，不要忘记在最后写next()
+    连续中间件之间共享req和res对象
+
+中间件的分类：
+    1 应用中间件：绑定到server的就是应用中间件，全局和局部都有
+    2 路由中间件：绑定到express.Router()上的就称之为路由中间件
+    3 错误中间件：用于捕获整个项目中发生的异常错误
+        处理函数中有四个参数 function(err, req, res, next)，err.message中就有错误信息
+        错误中间件必须注册在所有路由之后，可以不写next
+    4 Express内置中间件：使用都是server.use(...)
+        1 express.static() 无兼容性问题
+        2 express.json() 解析JSON格式的请求体数据，仅4.16.0以上
+        3 express.urlencoded({extended: false}) 解析url-encoded格式的请求体数据，同样的高版本才支持
+            如果版本不合适可以导入第三方中间件body-parser，语法基本相同
+        如果不配置解析表单数据的中间件，req.body为undefined，配置后可以获取请求体数据
+        想要拿到post过来的表单数据req.body，一定要配置解析表单数据的中间件
+    5 第三方中间件：跟包一样需要下载导入，然后使用server.use()导入即可
+p50
+
+### 9.12
+在编写自己的服务器的过程中，将urlencoded格式的查询字符串转码可以使用qs.parse(str)，querystring是node内置的模块
+JSON和js对象的转换需要自己完成，但是实际上查询字符串的转换是不需要的，框架会自动完成
+
+使用cors解决跨域问题：
+    1 使用npm安装cors
+    2 导入cors
+    3 server.use(cors())导入中间件，也一定在路由之前
+    cors由一系列的响应头组成，这些响应头决定浏览器是否阻止前端js代码跨域获取资源
+    cors在服务器配置http响应头，解除浏览器端的跨域访问限制，客户端只需要是支持xhr2.0的稍微新一点的浏览器即可
+
+cors响应头：
+    res.setHeader('Access-Control-Allow-Origin', '*') 允许所有网页访问本服务器资源，如果有限制可以换成其他域名
+    Access-Control-Allow-Headers，默认情况下cors仅支持9个响应头（详见9.5-9.11），如果添加需要用res.setHeader(...)
+    Access-Control-Allow-Methods，默认情况下仅支持GET POST HEAD三个请求，其他方法需要额外添加
+
+node p57
+
+http协议加强：
+    http的请求头部由多行键值对组成，用来描述客户端的基本信息，从而把客户端的相关信息告知服务器
+    常见的请求头字段：
+        1 Host 要请求的服务器域名
+        2 Connection 客户端和服务器的连接方式
+        3 Content-Length 用来描述请求体的大小
+        4 Accept 客户端可识别的相应内容列表
+        5 User-Agent 产生请求的浏览器类型
+        6 Content-Type 客户端告诉服务器实际发送的数据类型
+        7 Accept-Encoding 客户端可接收的内容压缩编码形式
+        8 Accept-Language 用户希望获得的自然语言优先顺序
+    在请求体中存放的是用post方式提交给服务器的数据，只有post请求才有请求体，get没有请求体
+    响应体和请求体整体比较类似
+
+    常见的http请求方法还有PUT DELETE作用是修改和删除服务器资源
+
+    http响应状态码，可以用来表示响应的状态
+        响应状态码是一个三位数，最高位定义了状态码的类型，后两位进行细分
+        1xx 表示信息，很少见
+        2xx 表示成功
+            200 请求成功 201已经创建了新的资源对应POST或者PUT
+        3xx 表示重定向，需要进一步操作完成请求
+            301 请求的资源已经永久移动到新的url，返回的信息包括新的url，浏览器自动定向
+            302 请求的资源临时被移动，客户端应该继续使用原来的url
+            304 请求的资源没有修改，不会返回任何资源，客户端直接从缓存访问
+        4xx 客户端错误，请求有语法错误或者无法完成请求
+            400 请求语义有误或者参数有误
+            401 当前请求需要用户验证
+            403 服务器拒绝执行
+            404 访问找不到的资源
+            408 请求超时
+        5xx 服务器错误，服务器在处理请求的过程中发生了错误
+            500 服务器内部错误
+            501 服务器不支持该请求方法，只有GET和HEAD是服务器必须支持的
+            503 由于超载或系统维护服务器暂时无法处理客户端的请求
+
+ajax p75接下来都是git内容
+重新进入vue部分
+
+npm install时添加-S参数的作用就是把包名和版本记录到package.json的dependencies下
+-S相当于--save，作为默认行为实际上可以省略 -D相当于--save-dev把包记录到devDependencies
+
+项目的根目录下创建webpack.config.js配置文件 初始化module.exports = {mode: 'development'}，这里选production表示上线模式
+在package.json的script节点下，新增dev脚本 "scripts":{"dev": "webpack"}
+
+webpack4.x和5.x版本中打包有默认的设定，在webpack.config.js中可以调节
+    默认的打包入口是src -> index.js，默认的输出文件路径dist -> main.js
+    可以通过entry节点指定打包入口，output节点指定打包出口，语法可以参见9.12-9.18columns的webpack配置文件
+
+webpack常用插件：
+    webpack-dev-server
+        类似于nodemon，代码修改就自动进行项目打包和构建
+        会启动一个实时打包的http服务器，访问页面的时候使用localhost:8080/src
+        打包的js文件是放在内存中的，因为频繁更改，不放在物理硬盘
+    html-webpack-plugin
+        可以自动将src下的index.html复制到项目的根目录(其实还是内存)，方便可以直接访问localhost:8080来访问到网页
+        并且在复制出来的页面会自动添加script，保证能引用到内存中的bundle.js
+
+webpack.config.js在module.exports中配置devServer参数自动打开网页
+    devServer: {
+        open: true,
+        port: 80,
+        host: '127.0.0.1'
+    }
+
+webpack中的loader，实际开发中webpack只能打包.js后缀的模块，非.js后缀结尾的模块需要使用loader
+loader可以协助webpack打包特定的文件模块，比如css-loader，less-loader，babel-loader(处理高级的js语法)
+在webpack中一切皆模块，都可以通过ES6导入语法，所以css，jpg图片等也可以使用import从入口js文件中导入
+直接import './index.css'而没有from表示只需要加载进来，不需要得到加载的结果，加载css的结果是undefined
+
+使用loader：
+    1 使用npm下载style-loader和css-loader(css使用)
+    2 在webpack.config.js的module->rules数组中，添加loader规则，rules中的use数组，从后loader往前调用
+    在出现webpack本身无法打包的文件时，会查找其配置文件，找module.rules数组中是否配置对应的loader，loader处理完合并到js代码
+    详见9.12-9.18的columns中的webpack配置文件
+
+    css对应的使用[style-loader, css-loader]
+    less对应的使用[style-loader, css-loader, less-loader]
+    与url路径有关的文件对应的使用[url-loader?limit=22229] limit指定图片的大小，只有小于limit字节才转为base64
+
+    使用base64可以解决小图片反复向服务器请求的问题，大图片还是适合原生方法
+    使用import导入图片之后自动变成base64格式的字符串，最后设置的src属性也是base64字符串
+
+    使用babel-loader处理高级语法兼容性问题，转换的时候会排除node_modules第三方包的转换
+    {test: /\.js$/, use: 'babel-loader', exclude: /node_modules/}
+    除此之外还要项目根目录创建babel.config.js配置文件等，详情见vue p22
+
+webpack项目发布：
+    在package.json的scripts节点下新增build命令 "build": "webpack --mode production"
+    执行npm run build命令就可以打包发布，从内存中转到真实物理硬盘(在使用了webpack的两个开发插件后打包的东西都在内存)
+
+SourceMap：是一个文件，里面存储的是位置信息，存储压缩代码对应的转换前的位置
+    在开发环境中为保证浏览器报错行号一致只需要在webpack配置文件的module.exports中添加
+        开发：devtool: 'eval-source-map'
+    在发布的时候为了安全性最好关闭source-map功能，为了进一步实现方便，发布后可以配置只定位行号不标记源码
+        发布：devtool: 'nosources-source-map'或者直接注释掉不要
+
+实际开发中使用命令行工具CLI一键生成带有webpack的项目，不会自己配置
+
+使用@表示src目录，一般建议导入的时候从src往里找而不是一直../../
+但是@表示src目录需要配置，在webpack配置文件中添加新节点resolve
+    resolve: {
+        alias: {
+            '@': path.join(__dirname, './src/)
+        }
+    }
+
+**正式开始vue：**
+vue有两大关键特点：数据驱动视图，双向数据绑定
+    数据驱动视图：数据的变化会自动导致页面的重新渲染
+    双向数据绑定：可以解决表单采集了数据自动获取，不再需要操作dom
+
+核心工作原理MVVM
+    ViewModel作为连接数据源Model和页面结构View的桥梁
+
+使用vue的基本步骤：
+    1 导入vue.js
+    2 创建vm实例对象(vue对象)
+        使用Vue()构造函数
+    3 在页面中声明将要被vue控制的dom区域
+        传入构造函数的参数是一个对象，设置对象的el属性，参数是选择器字符串，指定控制区域(包含其子元素)
+        设置对象的data属性，可以控制双向绑定，使用{{key}}把数据写到html标签中
+
+vue提供了六种类型的指令：
+    1 内容渲染指令
+    2 属性绑定指令
+    3 事件绑定指令
+    4 双向绑定指令
+    5 条件渲染指令
+    6 列表渲染指令
+
+内容渲染指令用于辅助渲染dom元素的文本内容，主要有三个指令：
+    v-text 添加到html标签的属性上，实际上就是自定义属性，特性是覆盖原有的标签内的原有内容
+    {{}} 插值表达式，可以防止覆盖原有的文本，最常用，里面也可以写简单运算式，函数调用等
+    v-html 内容可以有标签子元素等而不仅仅是普通文本，可以渲染出带标签的内容
+
+属性绑定指令用于动态绑定html元素的属性：
+    v-bind 把v-bind直接添加到要动态绑定的属性上 比如v-bind:placeholder="tips" v-bind也可以直接简写为:
+    在v-bind中如果进行字符串拼接在""的内容中还要再加一层''表示是字符串
+p41
