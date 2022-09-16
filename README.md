@@ -1250,6 +1250,7 @@ form标签用于采集数据，form标签的属性用来规定如何把采集的
     target _blank新窗口/_self当前窗口/_parent/_top/framename 规定在什么地方打开action url
 
 因为表单提交数据会导致页面跳转等问题，一般表单负责收集数据，提交过程使用ajax
+**提交表单会导致页面的自动刷新，所以实际上一般把它preventDefault**
 使用ajax操作表单的操作：
     1 表单的提交对应submit事件，可以直接使用form.submit(callback)或者使用form.on('submit', callback)
     2 使用e.preventDefault()清除表单的默认提交行为，在callback中使用
@@ -1643,12 +1644,137 @@ vue提供了六种类型的指令：
     5 条件渲染指令
     6 列表渲染指令
 
-内容渲染指令用于辅助渲染dom元素的文本内容，主要有三个指令：
+内容渲染指令 用于辅助渲染dom元素的文本内容，主要有三个指令：
     v-text 添加到html标签的属性上，实际上就是自定义属性，特性是覆盖原有的标签内的原有内容
     {{}} 插值表达式，可以防止覆盖原有的文本，最常用，里面也可以写简单运算式，函数调用等
     v-html 内容可以有标签子元素等而不仅仅是普通文本，可以渲染出带标签的内容
 
-属性绑定指令用于动态绑定html元素的属性：
+属性绑定指令 用于动态绑定html元素的属性：
     v-bind 把v-bind直接添加到要动态绑定的属性上 比如v-bind:placeholder="tips" v-bind也可以直接简写为:
     在v-bind中如果进行字符串拼接在""的内容中还要再加一层''表示是字符串
-p41
+p44
+
+### 9.14
+事件绑定指令 为dom绑定事件监听，函数定义到vue构造函数的methods属性里面
+    v-on 语法格式v-on:click="function_name(args)"如果需要传参可以这样传，不需要传参可以不写()，v-on可以直接被简写为@
+    事件处理中获取data的属性比如说函数要修改data中的count，直接在函数中使用vm.count或者this.count即可
+    绑定事件的时候如果不传参数，绑定的处理函数中默认有事件对象e，定义函数的时候添加参数e，使用e.target就可以操作触发事件的对象
+    如果传递了参数e会被覆盖，可以使用内置变量$event就是原生dom的事件对象，也传进去
+    事件修饰符：
+        在事件后添加.prevent会去除默认的行为，@click.prevent="add"
+        .stop 阻止冒泡
+        .capture 捕获模式触发当前事件处理函数
+        .once 绑定的事件只触发一次
+        .self 只有当event.target是当前元素自身时触发事件处理函数
+    按键修饰符：一般用于监听键盘事件，比如监听esc按键事件 @keyup.esc="clearInput"
+
+双向绑定指令 在不操作dom的情况下快速获取表单数据，这个属性双向绑定的是value
+    v-model 也是html自定义属性，比如input标签里面v-model="username"(相当于原生的value属性的自动更新)
+    之前使用的都是单向绑定，数据源的变化会自动导致页面的重新渲染，但是页面的变化不会导致数据源的变化
+    v-model提供了双向绑定，页面的变化也会导致数据源的自动更新
+    v-model也有修饰符：需求多可以连着写比如.number.lazy
+        .number 自动将输入值转化为数字
+        .trim 自动过滤用户输入的首尾空白字符
+        .lazy 在change时更新而不是input实时更新，失去焦点的时候同步到数据源
+        v-model一般操作的对象有input textarea select
+
+条件渲染指令 按需控制dom的显示与隐藏
+    v-if html自定义属性 v-if="bool" true展示，false隐藏 直接动态添加或删除元素 更经常使用
+    v-show html自定义属性 v-show="bool" true展示，false隐藏 给对应元素动态添加或删除display: none
+    和v-if配套的指令有v-else-if以及v-else，v-else后面就不跟条件了
+
+列表渲染指令 辅助开发者基于数组循环来渲染列表结构
+    v-for 格式是item in items, items可以是数组也可以是对象，但是必须写在data里面，item参数除了子元素，自身也可以访问
+    对于items是数组的情况还支持第二种(item, index) in items，使用这个index不需要item.index直接使用index就行
+    **使用了v-for要给html元素也绑定一个key属性，一般:key="item.id"(而不是index)，key只能是字符串或数字类型，必须有唯一性**
+
+label标签的for属性，一般label配合checkbox复选框操作，使用for="复选框的id"可以使点击label也能操作复选框
+
+p64
+
+### 9.15
+过滤器(vue2的功能，在vue3中删除)：常用于文本的格式化，用在插值表达式和v-bind属性绑定
+    过滤器函数使用|管道操作符使用，比如<p :id="rawID | deal">{{message | capitalize}}</p>
+    过滤器函数定义到filters节点里面，与data，methods平级的节点，过滤器函数一定要有返回值，参数的val就是管道符前面的值
+    在filters节点下定义的是私有过滤器，只能在定义的那个vm实例中执行
+    定义全局过滤器的方法是Vue.filter('functionname', function() {...})
+    也可以定义传参的过滤器函数 Vue.filter('fn', function(arg, my_arg1, my_arg2) {...})调用的时候写 | fn(my_arg1, my_arg2)
+    全局和私有名字相同的情况下，按照就近原则调用，先调用自己的私有过滤器
+
+侦听器：监视data数据的变化，数据变化就会调用
+    定义到watch节点(于data同级)，函数类侦听器，函数名就是要侦听的变量名，参数是newVal和oldVal
+    如果要让侦听器刚进入页面立刻触发，需要将函数改为对象
+    还是写到watch节点里面，key属性名还是要侦听的变量名，value是一个对象
+        value对象里面handler属性写侦听器函数，也可以直接写handler(newVal, oldVal)
+        immdiate属性，true / false 设置为true就可以自动触发
+        deep选项，true / false 解决如果侦听对象，对象属性改变不触发侦听器的问题，改为true对象属性的任何变化都会导致侦听器的触发
+        如果直接侦听一个对象的属性可以这么写 'user.info'(newVal, oldVal) {...}
+
+计算属性：指通过一系列运算最终得到属性值，这个动态的属性值可以被模板结构或methods方法使用
+    计算属性定义到computed节点下，定义的时候定义成方法格式，最终返回一个字符串，传递给模板结构等
+    计算属性内部使用的是data节点下的数据，拼接出动态的属性字符串，定义的时候是方法，用的时候直接写计算属性名
+    可以很方便实现代码的复用，并且只要计算属性中的数据源变化计算属性就会自动重新求值
+
+axios：专注于网络请求的库
+    调用axios方法得到的返回值是promise对象，then(res)中的形参不是服务器返回的真实数据，res.data才是
+    当调用某个方法的返回值是promise对象的时候，方法的前面可以添加await，await只能用在被async修饰的方法中
+
+**p76涉及了es6的promise异步等，先跳转到p226学习新语法**
+
+ES6的模块化：ES6的模块化标准是官方的标准
+    在ES6模块化之前已经有AMD，CMD，CommonJS几种模块化标准，但是通用性不强，AMD，CMD适用于浏览器端(淘汰了)，CommonJS适用于服务器端
+    ES6定义：
+        每个js文件都是独立的模块
+        导入其他模块成员使用import关键字
+        向外共享模块成员使用export关键字
+    配置node使用ES6的模块化语法：需要14.15.1以上的node版本，在package.json根节点添加"type": "module"
+    ES6的模块化主要包含三种用法：
+        1 默认导出和默认导入
+            默认导出 export default 默认导出的成员(用对象框起来) 每个模块中只能用一次
+            默认导入 import 接收名称 from '模块标识符'
+        2 按需导出和按需导入
+            按需导出 export 导出的成员 每个模块中可以多次
+            按需导入 import {要的成员名称} from '模块标识符' 相当于解构赋值，导出导入名称一定相同，可以使用as重命名，可以和默认一起使用
+                比如import {s1, s2 as myName, add} from 'xxx'
+        3 直接导入并执行模块中的代码 (只想执行某个模块中的代码不想得到其向外共享的成员)
+            import 要导入执行的模块
+
+Promise：解决回调地狱
+    Promise是一个构造函数，new出来的Promise实例代表了一个异步的操作
+    **Promise的Prototype上包含一个then方法，每个Promise的实例都可以访问到then方法**
+    .then()方法就是用来预先指定成功和失败的回调函数 比如 p.then(result => {}, error => {})，成功函数必选，失败函数可选
+    如果上一个.then()方法1返回了一个新的Promise对象，那么可以通过下一个.then()处理，通过then链式调用解决回调地狱
+    **具体的流程大概是前一个Promise的then回调中返回下一个操作的Promise，然后继续调用then重复操作**
+    通过Promise原型带有的.catch(err => {...})方法捕获错误，只要有错误直接进入.catch()，其捕获之前所有的错误
+    如果不希望catch提前终止回调链，可以将catch直接挂载到要捕获错误的Promise对象上
+    Promise.all()会发起并行的Promise异步操作，等所有异步操作全部结束才会执行下一步的.then方法，类似于锁
+        Promise.all(promiseArr).then(([r1, r2, r3] => {... return promise})) 这里的promiseArr里面有很多的promise实例，依次执行
+        当前面是Promise.all()时后面的then的回调也可以是一个对应数量的数组作为参数，如果少于就从前往后排
+        **Promise.all提供了更简单的顺序回调功能，但是更适合结构一样的**
+    Promise.race()参数和all一样，但是只要一堆Promise中有一个完成了会执行then，那么then的回调参数也只需要写一个了
+    创建一个具体的异步操作:
+        const process = new Promise(function(resolve, reject) {...})，具体的异步操作定义到function内部
+        then方法的两个参数就是Promise构造函数里的两个形参resolve, reject
+
+p243
+
+### 9.16
+async和await：整体上类似于提供一种简单的操作回调顺序的方法
+    ES8中引入的新语法，用于简化Prmise操作，否则只能使用.then链式调用的方法
+    在Promise对象前添加await关键字则从原来的Promise对象转为真实值，也就是使用then的参数，但是使用await外层的函数前面要添加async
+    在async方法中，第一个await之前的代码会同步执行，await之后的代码会异步执行(主线程结束后)
+
+EventLoop：解决js是一个单线程语言的任务排队问题
+    为了防止某些任务耗时太长导致程序假死，js把待执行任务分为两类：
+        同步任务：在主线程的排队任务，只有前一个执行完毕后一个才开始执行
+        异步任务：相对比较耗时，js委托给宿主环境(浏览器/node)执行，异步任务执行完成后，通知js主线程执行异步任务的回调函数
+            当宿主环境把异步操作执行完毕后，把回调函数按照次序送到任务队列中，在主线程完成后回调函数依次执行
+    主线程从任务队列中读取异步任务的回调函数，放到执行栈中依次执行的这个过程是循环不断的，所以这种机制被称为EventLoop
+
+宏任务和微任务：
+    js把异步任务进一步细分为宏任务和微任务
+    宏任务：
+        异步ajax，定时器，文件操作，其他宏任务
+    微任务：
+        Promise.then .catch .finally / process.nextTick / 其他微任务
+    每当一个宏任务执行完毕后，都会检查是否有微任务，如果有就执行所有微任务再执行下一次宏任务
