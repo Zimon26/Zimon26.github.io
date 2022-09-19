@@ -1706,7 +1706,7 @@ p64
     如果要让侦听器刚进入页面立刻触发，需要将函数改为对象
     还是写到watch节点里面，key属性名还是要侦听的变量名，value是一个对象
         value对象里面handler属性写侦听器函数，也可以直接写handler(newVal, oldVal)
-        immdiate属性，true / false 设置为true就可以自动触发
+        immdiate属性，true / false 设置为true就可以立刻第一次也触发
         deep选项，true / false 解决如果侦听对象，对象属性改变不触发侦听器的问题，改为true对象属性的任何变化都会导致侦听器的触发
         如果直接侦听一个对象的属性可以这么写 'user.info'(newVal, oldVal) {...}
 
@@ -1777,4 +1777,256 @@ EventLoop：解决js是一个单线程语言的任务排队问题
         异步ajax，定时器，文件操作，其他宏任务
     微任务：
         Promise.then .catch .finally / process.nextTick / 其他微任务
+        **Promise的这个几个函数是微任务，但是本身new Promise是主线程的同步任务**
     每当一个宏任务执行完毕后，都会检查是否有微任务，如果有就执行所有微任务再执行下一次宏任务
+
+vue从p253的api接口案例需要使用mysql，可能需要回node学，预计把后面node的案例全部学完需要三天时间
+从node p57继续
+
+安装配置MySQL：
+    对于开发人员只需要安装MySQL Server和MySQL Workbench
+        MySQL Server：专门提供数据存储和服务的软件
+        MySQL WorkBench：可视化的MySQL管理工具，可以通过它方便的操作存储在MySQL Server的数据
+
+SQL语句：关键字对大小写不敏感
+    在SQL语句中-- 表示注释(两个杠一个空格)
+    选择数据：select 列名/* from 表名 where...;
+    插入数据：insert into 表名 (列1，列2...) values (值1, 值2...)
+    修改数据：update 表名 set 列名1=value1, 列名2=value2 where 列名=...
+    删除数据：delete from 表名 where 列名=value;
+    and和or替代js中的&&和||
+    排序子句：order by 列名1 (desc), 列名2 (desc) 默认升序，降序需要添加desc关键字，排序依据是先列名1再列名2
+    count()用于返回查询结果的总数据条数比如 select count(*) from users where status=0;
+    使用as可以给查询出来的列设置别名 select count(*) as total from users where status=0;
+    SQL语句中有些数据段暂时不写可以使用?进行占位
+    
+在项目中操作MySQL的基本步骤：
+    1 安装操作MySQL数据库的第三方模块mysql
+    2 通过mysql模块连接到MySQL数据库
+        import mysql from 'mysql';
+        使用createPool可以建立与数据库的连接
+        const db = mysql.createPool({
+            host: '127.0.0.1',
+            user: 'root',
+            password: 'admin123',
+            database: 'my_db_01'
+            可以选port，默认是3306一般不动
+        })
+    3 通过mysql模块执行SQL语句
+        使用db.query()指定要执行的SQL语句，通过回调拿到执行结果
+        查询数据 db.query('select 1', (err, results) => {...}) 如果执行的是select语句，执行的结果results是数组
+        插入数据 db.query('insert into users (username, password) values (?, ?)', ['jack', '888888'], (err, results) => {...})
+            执行插入语句的时候传入的参数数组按照次序填补前面?占位符的位置，可以通过检测results.affectedRows === 1看是否成功
+        简化的插入数据方法 db.query(sqlStr, user, callback) 这种情况下没有设置的元素按默认方法继续叠加
+            sqlStr = 'insert into users set ?' user = {username: '...', password: '...'}
+        更新数据 db.query('update users set username=?, password=? where id=?', ['mary', '234567', 1], callback)
+        简化的更新数据 db.query('update users set ? where id=?', [user, user.id], callback)
+        删除数据 db.query('delete from users where id=?', id, callback)
+        真实情况下可以使用标记删除的方法，修改status位防止误删除便于恢复
+
+在MySQL中设置的AI自增属性是删除也会不变的，所以更新删除数据可以使用id作为行的判断依据，类似于serial
+
+p70
+
+### 9.17
+
+web开发模式：
+    服务器渲染模式：服务器发送给客户端的html页面已经在服务器端通过字符串拼接动态生成，因此客户端不需要ajax
+        优点：客户端耗时少，有利于SEO 缺点：占用服务器资源，不利于前后端分离开发
+    前后端分离开发模式：后端只提供api接口，前端使用ajax调用接口
+        优点：分工明确，前端选择性高，用户体验好，服务器压力小 缺点：不利于SEO，但是也可以使用SSR技术解决
+
+身份认证：
+    服务器渲染模式使用session认证机制，前后端分离使用jwt认证机制
+
+cookie机制：
+    http是无状态的协议，每次http请求是独立的，连续的多个请求没有直接关系，服务器不会主动保留每次http的请求状态
+    需要使用cookie突破http的无状态性，cookie是存储在用户浏览器中的一段不超过4kb的字符串，由名称，值和其他几个可选属性组成
+    不同域名下的cookie各自独立，客户端发起请求的时候会自动把当前域名下的所有未过期cookie发送到服务器
+    cookie的特性：自动发送，域名独立，过期时限，4kb限制
+    客户端第一次访问服务器的时候服务器通过响应头将cookie发送给客户端，之后每一次访问服务器客户端都使用请求头将cookie发送给服务器
+    cookie直接存储在浏览器，并且浏览器也提供cookie的api，容易被伪造，cookie并不具有安全性，不使用cookie存储重要数据
+
+在Express中使用session中间件:
+    1 npm安装express-session
+    2 app.use(session({
+        secret: 'itheima', 这个地方一般类似于密钥
+        resave: false,
+        saveUninitialized: true
+    }))
+    3 中间件配置成功后可以使用req.session来访问和使用session对象
+        详见9.12-9.18 mysqltest/app.js
+    清空session可以调用req.session.destroy()，会清空当前用户的session
+
+session的局限：
+    session机制需要配合cookie才能实现，cookie默认不支持跨域方法，涉及前后端跨域的时候需要很多额外配置
+
+jwt(JSON Web Token)认证机制:
+    需要跨域的时候需要使用jwt
+    jwt类似于cookie，生成加密的token字符串到发送给客户端而不是类似于cookie保留到服务器端
+    随后客户端再次发起请求的时候请求头中附带有Authorization字段，将token发给服务器，服务器将token还原成用户的信息对象
+    和cookie的主要区别：1 token保存在客户端而不是服务器 2 有加密和还原的过程
+    jwt字符串的三个组成部分Header.Payload.Signature
+        Payload才是用户的真实信息，Header和Signature涉及安全的部分
+    jwt字符串一般存储在浏览器的localStorage或者sessionStorage，发送jwt时放在http请求头的Authorization字段，格式如下
+        Authorization: Bearer <token>
+
+在Express中使用jwt：
+    1 npm安装 jsonwebtoken 和 express-jwt
+        jsonwebtoken用于生成jwt字符串，express-jwt中间件用于将jwt字符串解析还原成json对象
+    2 导入这两个包
+        新版的导入方法是 const {expressjwt: express_jwt} = require('express-jwt)
+    3 定义secret密钥，secret密钥用于jwt的加密和解密过程
+    4 在用户登录成功后使用jsonwebtoken包提供的sign()方法，将用户的信息(不要密码)加密成jwt字符串，通过token属性响应给客户端
+        token属性对应的jwt使用jsonwebtoken.sign()方法进行加密，有三个参数：
+        1用户信息对象 2加密的密钥 3配置对象，可以配置token的有效期
+    5 将jwt字符串还原为json对象，使用到express-jwt中间件
+        app.use(express_jwt({secret: secretKey}).unless({path: [正则表达式]}))
+        **如果这里使用的是新版的express-jwt，需要在secret后添加algorithms: {'HS256'}**
+        unless方法可以通过正则表达式匹配哪些接口不需要访问权限
+    6 使用req.user获取用户信息(**最新的官方已经改成了req.auth**)
+
+api项目：
+    为了保证密码的安全性，实际使用中一般不把明文密码放入数据库中，而是把加密的密码放入数据库中
+    使用bcryptjs可以对密码进行加密，加密后的密码不能逆向破解并且同一明文多次加密得到的结果也不同
+    p80
+
+### 9.18
+表单验证：前端为辅，后端为主，后端主要采用第三方数据验证模块
+回顾req的三个子属性：(都是对象已经简化过)
+    1 req.query get请求的查询字符串部分
+    2 req.params get请求使用url动态参数时候获取动态参数用
+    3 req.body post请求获取请求体用
+
+node p83 大事件后端项目的大体基本实现，开始重新转向vue，从p253开始
+
+mysql库中的createPool函数返回值pool提供.promise()方法，调用后可以允许使用promise的方式
+
+async和await：
+    async函数完全可以看作多个异步操作，包装成的一个 Promise 对象，而await命令就是内部then命令的语法糖
+    了解底层后会在这里补充
+
+axios的通常用法：
+    const {data: res} = await axios({
+        method: 'get/post',
+        url: ...
+    }) 直接使用await更简单获取res对象，然后结构赋值获取到res.data
+
+     axios.get(url, {
+        params: {} 如果不需要传参数这个项可以省略
+    }) 返回值Promise适合前面加await,返回值依然通过解构赋值获取
+
+    axios.post(url, {要提交的参数}) 其他方面类似于axios.get()
+
+vue-cli：
+    单页面应用程序：Single Page Application，一个web网站中只有唯一一个html页面
+    vue-cli：
+        是Vue的标准开发工具，简化了基于webpack创建工程化Vue项目的过程
+        vue-cli是npm上的全局包，使用-g参数安装 npm i -g @vue/cli
+        配置vuecli的一些选项：
+            Progressive Web App (PWA) support 渐进式web应用支持
+            Linter / Formatter 可以自动按照格式格式化代码
+            Unit/E2E Testing 用于软件测试
+
+vue项目下的文件构成：
+    src文件夹内部：
+        assets文件夹：存放项目中用到的静态资源文件，比如css样式表，图片资源
+        conponents文件夹：程序员封装的，可复用的组件都放到这个位置
+        main.js：是项目的入口文件，整个项目的运行要先执行main.js
+        App.vue：是项目的根组件，看到的结构就是源自App.vue，这个文件定义了很多ui结构
+
+vue项目的运行流程：
+    通过main.js把App.vue渲染到index.html的指定区域
+        App.vue 用来编写待渲染的模板结构
+        index.html 需要预留一个el区域
+        main.js 把App.vue渲染到index.html所预留的区域
+    main.js中new Vue后面跟的.$mount('选择器')跟直接写el效果是相同的，指定vue的代管区
+    render函数会直接把vue的控制区直接替换
+
+vue组件：
+    组件化开发的思想是根据封装的思想把页面上可重用的ui结构封装成组件，从而方便项目的开发和维护
+    组件化开发：
+        vue支持组件化开发，组件的后缀是.vue
+        vue组件由三个部分：都是html标签的样式，三个标签平级
+            template 组件的模板结构
+                **必须只能有一个根节点**
+            script 组件的js行为 必须写export default { data函数数据源 } 导出数据
+                **vue组件里面的data不能指向对象，应该是一个函数，这是跟之前的主要区别**
+                例如 data(){ return obj } return的这个obj里面可以挂载数据
+                写函数的话跟之前一样使用methods节点，跟data平级的节点
+            style 组件的样式
+                **如果要使用less语法需要在style标签添加属性lang="less"**
+p89
+
+### 9.19
+main.js中render函数渲染的是哪个vue组件，那个组件就称为根组件
+根组件App使用其他组件，根据使用时候的嵌套关系可以称为父子组件等
+在vuecli中@表示src目录会自动被配置
+
+父子组件的使用：
+    1 在父组件中使用import语法导入需要的组件
+    2 使用components节点(跟data平级)注册组件
+    3 以标签的形式使用刚才注册的组件
+    通过components注册的是私有子组件，只能在注册的节点使用
+
+    注册全局组件：都在main.js而不是App.vue
+    1 在main.js使用import引入组件
+    2 在main.js通过Vue.component()方法注册全局组件，写到
+
+组件的props：
+    props是组件的自定义属性，封装通用组件后使用props可以提高组件的复用性
+    在组件内部可以在跟data平级声明props节点，一个数组包着自定义属性名，props中的数据可以直接渲染到页面上，跟data一样
+    使用的时候类似html标签添加属性比如<MyCount init="9"></MyCount>
+    在组件里面直接传的是字符串，比如上面是字符串9，转数字可以使用:init="9"，v-bind的方法
+    props的属性是只读的，能修改但是强烈不建议，模拟修改可以把值先赋给data的数据，直接用this.属性名就可以访问
+        在data() return {...}里面count: this.init
+    对象模式props：
+        可以设置默认值比如props:{init:{default: 0}}
+        设置数值的类型比如props:{init:{type: Number}}，默认的类型是字符串，这个设置强行要求传进来的参数必须是指定的type类型
+        可以设置必填项属性props:{init:{type: Number, required: true}} 不填必选项会报错
+
+组件样式冲突：因为是单页面应用，一个组件的样式实际会写到全局生效
+    解决的原理是一个组件内的所有标签都添加用于标记的自定义属性，总的css文件最后综合属性选择器打包
+    解决方法是在组件的style标签添加scoped属性比如<style lang="less" scoped>
+    样式穿透：在css选择器之前添加/deep/，用于父组件的样式穿透到子组件，主要是使用第三方库的时候如果需要修改第三方组件样式需要
+
+组件的生命周期大体：
+    vue组件的模板结构最后会依赖于vue编译器变成js代码再插入index.html(vue-template-compiler)
+    最后合并的组件其实是组件的实例，在写组件标签的时候实际上类似于new，而组件类似于构造函数，组件的实例被合并
+    生命周期指的是一个组件从 创建 -> 运行 -> 销毁 的过程，生命周期函数会伴随生命周期自动运行，没写代码就空执行
+    生命周期函数直接放在exports里面的对象就可以比如 beforeCreate() {...}
+    创建过程的生命周期函数：(使用标签引入组件)
+        new Vue() -> beforeCreate -> created(组件在内存中创建完毕) -> beforeMount -> mounted(这个过程组件挂载到浏览器)
+    运行阶段和销毁阶段：
+        beforeUpdate -> updated
+        beforeDestroy -> destroyed
+    webpack会使用vue编译器，从main.js开始，到App.js到其引入的其他组件，树状加载组件变成js代码最后送入index.html
+
+组件的生命周期细节：
+    组件的生命周期始于new Vue()，随后初始化事件和生命周期函数，到beforeCreate
+
+    beforeCreate 后开始初始化props，data，methods等各种属性，随后进入created(此时组件的props/data/methods都已经成熟但是还没有模板结构)
+    
+    created 后进行判断是否有el选项，如果没有需要等到$mount()被调用，再判断有无template选项(不是模板结构)，接上下面的流程
+    如果有el会继续判断有无template选项，如果无随后将el的虚拟dom结构转化为模板编译
+    created 阶段经常使用ajax来获取数据等，获取数据的方法放在methods节点，然后可以在created里面调用然后赋值给data
+    整体而言这个过程就是基于数据和模板在内存中编译生成html结构，结束后进入beforeMount
+
+    beforeMount 的时候是将要把内存中编译好的html结构渲染到浏览器，此时浏览器中还没有相关组件的dom
+    随后用内存中编译生成好的html结构替换el指定的dom元素，结束后进入mounted阶段
+
+    mounted 阶段内存中的html已经渲染到了浏览器中，浏览器已经包含当前组件的dom结构，然后进入运行阶段
+
+    beforeUpdate 由数据的变化触发(有变化才触发)，将要根据变化的数据重新渲染组件的模板结构，随后重新渲染进入updated
+
+    updated 根据最新的数据已经完成了dom结构的重新渲染，已经是最新的数据
+
+    beforeDestroy 准备销毁但是还没销毁，还在正常工作，销毁后进入destroyed
+        这两个都不常用，常见的销毁是v-if选择性渲染属性
+    destroyed 已经被销毁
+
+组件之间的数据共享：
+    父子组件：
+        父组件向子组件共享数据需要使用自定义属性(其实就是父组件导入的时候使用v-bind用标签属性的方法给子组件的props)
+            props的值不要修改，还是拿到了就转到data属性去
+        p113
