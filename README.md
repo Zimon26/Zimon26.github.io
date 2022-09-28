@@ -2167,11 +2167,11 @@ keep-alive 的 include 属性，值是字符串，多个组件之间用逗号分
 插槽：
 插槽一般本身是为组件的封装者提供的能力，允许开发者在封装组件的时候把不确定的希望用户指定的部分定义为插槽
 在组件中使用 slot 标签，用户使用的时候传递什么内容 slot 就换成什么
-用户传递直接在自定义组件标签内容里面写(innerHTML)，但是如果标签没有插槽，那么往标签的内容节点里面写是无效的
+<u>用户传递直接在自定义组件标签内容里面写(innerHTML)，但是如果标签没有插槽，那么往标签的内容节点里面写是无效的</u>
 **vue 规定每一个 slot 插槽都必须要有 name 名称属性，如果省略 name 属性则有默认的名称 default**
 默认情况下，在使用组件的时候，提供的内容都会被填充到名字为 default 的插槽之中
 **如果要指定放到哪个插槽，先用 template 标签包起来给 template 添加 v-slot:插槽名 然后里面写要填充的内容，最后 template 不被真实渲染**
-**v-slot 的简写是# 所以指定 default 可以简写#default 开发者在插槽中写的内容(innerHTML)称为后备内容，用户不指定就是后备内容**
+**v-slot 的简写是# 所以指定 default 可以简写\#default 开发者在插槽中写的内容(innerHTML)称为后备内容，用户不指定就是后备内容**
 插槽的进阶使用：
 开发组件的时候 slot 除了 name 属性还可以添加自定义属性，用户使用的时候使用 #插槽名字="scope"可以获取
 如果没有自定义属性，scope 是空对象，这种插槽称为作用域插槽，注意 scope 是整个插槽的所有属性的对象
@@ -2251,20 +2251,20 @@ vue-router 的使用：
 动态路由：
     动态路由指的是把 hash 地址中可变的部分定义为参数，提高路由规则的复用性，使用 url 动态参数加上:就可以了
     上述的例子比如{path: /movie/:id, component: Movie}，但是如果这么写 movie 中应该根据 id 的值反映出对应的页面
-    获取 id 的方法是 movie 的 this.$route.params.id 点击不同的 router-link 标签 id 属性就会跟着改变
+    获取 id 的方法是 movie 的 this.\$route.params.id 点击不同的 router-link 标签 id 属性就会跟着改变
     更理想的方法是直接在路由规则数组对象中添加props: true然后在Movie.vue声明对应的props就可以直接获得
-    如果是查询字符串的参数不是hash地址，查询参数使用this.$route.query 获得，获得的查询参数直接就是对象
-    $route 里面还有 fullPath 属性，里面有带 hash 地址和查询字符串的完整路径
+    如果是查询字符串的参数不是hash地址，查询参数使用this.\$route.query 获得，获得的查询参数直接就是对象
+    \$route 里面还有 fullPath 属性，里面有带 hash 地址和查询字符串的完整路径
 
-this.$route 是路由的参数对象，this.$router 是路由的导航对象
+this.\$route 是路由的参数对象，this.\$router 是路由的导航对象
 声明式导航：点击链接导致组件的切换，比如使用 a 或者 router-link 标签
 编程式导航：调用 api 实现导航，比如直接修改 location.herf
 
 vue 项目的编程式导航：
 vue-router 提供了三个常用的 api
-    this.$router.push('hash地址') 直接跳转到指定页面，增加一条历史记录，在页面内可以后退
-    this.$router.replace('hash 地址') 直接跳转到指定页面，替换一条历史记录
-    this.$router.go(数值 n) 数值 n 可以是正数也可以是负数，表示在历史记录前进后退
+    this.\$router.push('hash地址') 直接跳转到指定页面，增加一条历史记录，在页面内可以后退
+    this.\$router.replace('hash 地址') 直接跳转到指定页面，替换一条历史记录
+    this.\$router.go(数值 n) 数值 n 可以是正数也可以是负数，表示在历史记录前进后退
     对于 go 方法一般只前进一步或者后退一步，由此提供了.forward()和.back()
 因为编程式导航一般只有一行代码，适合在行内绑定@click 函数，如果行内写就不要带 this
 
@@ -2400,7 +2400,7 @@ new Vue({
 
 似乎vue3的v-model不仅限于表单元素，一会儿查看一下
 
->   在表单输入元素或组件上创建双向绑定
+>   在表单输入元素或组件上创建双向绑定  --Vue文档
 
 **使用v-model绑定组件有什么要点**
 
@@ -2529,7 +2529,7 @@ this.$http('url可以简写了', ...) // 用的时候这么写
 
 **重新讲一下插槽的进阶使用**
 
-​	只要是<slot>里面绑定了props数据的就是作用域插槽
+​	只要是`slot`里面绑定了props数据的就是作用域插槽
 
 ```vue
 <slot name="default" :info="obj"></slot> // 这是本身组件部分
@@ -2801,7 +2801,7 @@ function Stack() {
 
 ​	对比数组的缺点：访问任意位置的元素都需要从头或者尾开始，没有下标的优势
 
-​	==一般情况下认为按着下标插入是插入到这个下标的后面而不是替换这个下标== 这个问题再继续考证一下
+​	==一般情况下认为按着下标插入是插入后新下标对应插入的这个元素== 这个问题再继续考证一下
 
 ​		但是在splice方法中插入是放到新数组的对应指定下标
 
@@ -2900,3 +2900,148 @@ container只能包含这四个元素或者自身，这四个元素的亲父元�
 
 不得不说element ui写得太费劲以至于明天需要花更多时间看
 
+
+
+### 9.28
+
+数据结构 p34
+
+**element ui 继续看**
+
+​	**受控组件**
+
++   只有表单元素才明确是不是受控组件
++   受控组件是直接被vue管理的，而非受控组件类似于原生的dom管理
+
+​	**输入框**
+
+​	`<el-input></el-input>`就是受控组件，并且如果不处理input事件并更新绑定值(或者干脆v-model也行) 会无法输入
+
+​	输入框的标签和属性：
+
+```html
+<el-input placeholder="请输入密码" v-model="input" show-password></el-input>
+// v-model必须写，不写不能正常使用
+// Boolean属性：disabled clearable show-password
+// 插入前后小图标：prefix-icon suffix-icon
+// 如果换成textarea就添加 type="textarea" rows=...
+```
+
+​	**选择器**
+
+```html
+// 选择器的外层使用el-select，内层使用el-option，这个标签使用v-for渲染就实现了选择器内部的选项
+// 举个例子
+<el-select v-model="userType" placeholder="请选择登录身份" style="margin-bottom: 20px">
+	<el-option v-for="item in userTypeOptions" :key="item.id" :label="item.label" :value="item.id">
+	</el-option>
+</el-select>
+// 在el-select里面绑定的v-model="userType"，这个userType对应视图的值就是选中的el-option的value属性
+```
+
+
+
+​	**表单**
+
+​	表单也是常见的表单组件拼出来的，相关的组件主要有两个`el-form`以及`el-form-item`
+
+```html
+// 最外层是el-form包起来，每一个表单域再使用el-form-item包起来
+// 举个例子
+<el-form ref="form" :model="form" label-width="80px" :rules="loginFormRules">
+  <el-form-item label="活动名称" prop="activity"> // label是表单项展示出来的描述
+    <el-input v-model="form.name"></el-input>
+  </el-form-item>
+</el-form>
+// 在data里面添加规则
+data() {
+	return {
+		loginFormRules: {
+			activity: [
+				{required: true, message: '请输入活动名称', trigger: 'blur'}
+			]
+		}
+	}
+}
+
+// 对于el-form，可以使用inline属性让表单域展现到一行
+// 使用label-position调整描述文字的对齐方式
+// 表单验证，比较复杂可以看文档
+```
+
+​	==一个表单就是一个系列，el-form添加model属性绑定data的对象，剩下的表单域绑定form对象的属性==
+
+​	表单的验证总规则添加到el-form，分规则写到el-form-item，可以看上面的实际代码演示
+
+​	通常给el-form一个ref属性，方便直接调用表单的方法，比如`resetFields / validate`
+
+**通知类气泡消息提示**
+
+​	element已经帮我们在Vue原型上挂载\$message属性，里面有一些弹框有关的方法可以直接使用
+
+p32
+
+**回顾一下Vue2的路由**
+
+​	直接贴一个典型的 router.js 代码
+
+```js
+import Home from '@/components/Home.vue'
+import Login from '@/components/Login.vue'
+import Vue from 'vue'
+import Router from 'vue-router'
+
+Vue.use(Router)
+
+const router = new Router({
+  routes: [
+    { path: '/', redirect: '/login' },
+    { path: '/login', component: Login },
+    { path: '/home', component: Home }
+  ]
+})
+
+router.beforeEach((to, from, next) => {
+  if (to.path === '/login') return next();
+  const token = window.sessionStorage.getItem('token')
+  if (!token) return next('login')
+  next();
+})
+
+export default router
+
+// 最后在main.js只需要很简单在创建vue对象的时候传参
+import router from '.../router.js'
+new Vue({
+  router,
+  render: h => h(App)
+}).$mount('#app')
+```
+
+
+
+**杂项**
+
+​	不是页面上的每个组件都要换成element ui，很多也可以自己写
+
+​	在vue文件中使用sessionStorage这种window的属性，前面添加window对象`window.sessionStorage.setItem(key, value)`
+
+​	回顾一下路由守卫的作用，卡路由访问权限可以用，比如/home只能登录了的用户才可以访问
+
+
+
+**今天的算法题总结 70-爬楼梯 206-反转链表**
+
+​	爬楼梯这个题用的是动态规划的方法，不同于递归，动态规划可以使用数组记录已经计算过的状态，递归每次都重新计算
+
+​	这道题直接使用递归会超时，所以之前的计算结果应该存起来
+
+​	想通了为什么动态规划使用dp数组可以比单纯的递归速度更快
+
+```
+比如说爬楼梯这道题，递归的公式是 f(n) = f(n-1) + f(n-2)
+举个例子 f(5) = f(4) + f(3) = f(3) + f(2) + f(3)
+显然从这里看如果不使用动态规划的dp数组，f(3)计算了两次，而动态规划只需要计算一次
+```
+
+找个闲时间整理一下格式
