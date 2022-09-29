@@ -2957,7 +2957,7 @@ container只能包含这四个元素或者自身，这四个元素的亲父元�
 data() {
 	return {
 		loginFormRules: {
-			activity: [
+			(这个地方是规则的名字，规则使用prop传递给el-form-item)activity: [
 				{required: true, message: '请输入活动名称', trigger: 'blur'}
 			]
 		}
@@ -3045,3 +3045,58 @@ new Vue({
 ```
 
 找个闲时间整理一下格式
+
+
+
+### 9.29
+
+上午出门做了个志愿活动，今天从下午开始
+
+**element ui**
+
+​	**菜单布局**
+
+​	使用的标签，属性以及使用的方法：
+
+```html
+// 两级菜单并且可以折叠
+// 典型样例
+<el-menu> // 菜单总体 text-color和active-text-color用来调整菜单文字和选中项目的文字
+	<el-submenu> // 一级菜单
+		<i class="el-icon-menu"></i>
+		<span>一级菜单</span>
+		<el-menu-item> // 二级菜单
+			<i class="el-icon-menu"></i>
+			<span slot="title">二级菜单</span>
+		</el-menu-item>
+	</el-submenu>
+</el-menu>
+
+// el-submenu的index属性需要不同，这个属性相当于子菜单的id，但是这个index属性只接受字符串参数
+// el-menu-item也需要绑定index属性
+// 每一级菜单的渲染都可以使用v-for，尤其是使用ajax获取数据的情况
+```
+
+p38
+
+**杂项**
+
+​	css属性 letter-spacing 单位可以使用em，调整字体间距用的
+
+
+
+**今天的算法题总结 67-二进制求和 171-Excel表列序号**
+
+​	这道题就是之前的字符串相加的简单版本，相当于重新熟悉一下代码，一遍就过
+
+```js
+// 字符转ascii码
+String.fromCharCode(number) // 返回值就是对应的字符
+// ascii码转字符
+my_char.charCodeAt() // 返回值就是对应的ascii码
+```
+
+​	Excel表列序号就是写了个26进制转10进制，也非常简单
+
+今天没看数据结构，把登录界面重构了一下，现在基本上看得过去了，明天开始管理员面板的构建
+
