@@ -3062,7 +3062,7 @@ new Vue({
 // 两级菜单并且可以折叠
 // 典型样例
 <el-menu> // 菜单总体 text-color和active-text-color用来调整菜单文字和选中项目的文字
-	<el-submenu> // 一级菜单
+	<el-submenu> // 一级菜单 属性是el-submenu说明还有下级菜单
 		<i class="el-icon-menu"></i>
 		<span>一级菜单</span>
 		<el-menu-item> // 二级菜单
@@ -3083,6 +3083,8 @@ p38
 
 ​	css属性 letter-spacing 单位可以使用em，调整字体间距用的
 
+​	有时候遇到的GitHub Pages部署失败可以在部署页面重新点一下运行部署`Rerun jobs`
+
 
 
 **今天的算法题总结 67-二进制求和 171-Excel表列序号**
@@ -3100,3 +3102,136 @@ my_char.charCodeAt() // 返回值就是对应的ascii码
 
 今天没看数据结构，把登录界面重构了一下，现在基本上看得过去了，明天开始管理员面板的构建
 
+
+
+### 9.30
+
+数据结构p39
+
+找到了一个新的ES6课程，暂时不想做vue先看一下
+
+**复盘ES6**
+
+​	**let和const**
+
+​		var的变量提升是把声明提升到最前面，但是赋值并没有被提前，所以之前的使用都是undefined
+
+​		let和const都没有变量提升，限制于声明的作用域，不能重复声明
+
+​		这俩还有个好处是不会污染全局变量，var声明的变量会直接挂到顶级作用域的属性(比如window)
+
+​	**函数的默认参数，剩余参数和扩展运算符**
+
+​		关于默认参数实际上es5并不是不行，只是不太方便
+
+```js
+// es5默认参数
+function add(a, b) {
+	a = a || 10; // 使用这种方法进行默认参数的传递
+	b = b || 20;
+	return a + b;
+}
+
+// es5关于不定函数参数
+// 使用arguments获取实参，这个arguments是类数组，一般可以使用循环遍历这个数组
+// 剩余参数是数组而arguments是伪数组，扩展运算符也是... 作用主要是展开数组
+// 比如求数组的最大值
+Math.max.apply(null, arr) // ES5
+Math.max(...arr) // ES6
+```
+
+​	**箭头函数**
+
+​		箭头函数本身自己没有this，箭头函数首先找箭头函数定义的作用域，这个定义的作用域的上层就是箭头函数的this
+
+​		箭头函数中的this，始终指向函数声明时所在的作用域下的this值，因为箭头函数也没有自己的作用域链
+
+​		<u>箭头函数没有arguments参数以及不能用来new对象</u>
+
+​	**解构赋值**
+
+​		这个可以混合剩余参数，解构对象的话剩余参数就是对象，解构数组的话剩余参数就是数组
+
+​	**扩展的对象功能**
+
+​		==这可能是今天最大的收获，本身ES6除了提供了同名属性简写以及函数简写之外，还提供了动态的属性名，例子如下==
+
+```js
+const name = 'jack';
+const obj = {
+	name, // 同名属性简写
+	sayHi() {...}, // 函数简写
+	[name + 'man']: 'Bojack' // 动态属性名，此时的属性名是 jackman
+}
+// 所以说 [symbol] 当属性名，是这样来用的
+
+// 新方法 Object.is(one, another) 对比两个对象是否完全相等，比 === 更加准确
+let result = Object.is(NaN, NaN) // 返回值是 true
+
+// 新方法 Object.assign(target, obj1, obj2, ...) 把后面的所有属性合并到 target，可以浅拷贝
+let newObj = Object.assign({}, obj1, obj2) // 返回值就是合并后的对象
+```
+
+​	**Symbol**
+
+​		表示独一无二的值的原始数据类型，主要的用途是定义对象的私有变量，比如当属性名使用
+
+​		如果是symbol定义的属性，取值的时候使用中括号比如`obj[s]`，不能使用`.属性名`
+
+​		定义的时候属性名使用中括号包起来`let obj = {[s1]: 'jack'}`
+
+​		symbol定义的属性不能使用传统的方法遍历出来(不属于对象的可枚举属性)
+
+​		实在需要拿到symbol的属性名可以这样使用：
+
+```js
+// 第一种方法
+let s = Object.getOwnPropertySymbols(obj);
+console.log(s); // 返回值是一个由所有symbol属性名组成的数组
+// 第二种方法
+let m = Reflect.ownKeys(obj);
+console.log(m); // 返回值也是一个由所有symbol属性名组成的数组
+```
+
+​	**Set 集合数据类型**
+
+​		集合表示一个没有重复值的有序列表，使用`new Set()`声明，默认里面属性有`size`可以查看集合大小
+
+​		部分内置方法
+
+```js
+// set是集合的一个实例
+set.add(i) 传入的参数i可以是多种类型的值，添加重复元素不算
+set.delete(i) 删除集合中的i
+set.has(i) 返回布尔值集合中是否有i
+set.forEach((val, key) => {...}) // 这个用的很少因为集合中val和key是相等的，意义不大
+let set = new Set(oldArr) / let arr = [...set] // 数组和集合的相互转换，可以用来清除重复元素
+```
+
+​	set中的对象是不能释放的(设置对象是null后也不能释放)
+
+​	解决方法是`new WeakSet()`这样对象就可以被释放了，但是weakset不能传入非对象参数，并且不能遍历，没有size属性
+
+ES6 p11
+
+**Vue 项目**
+
+​	**设置单页面全屏的方法，main.js或者App.vue外源引入自己的css全局文件，内容如下：**
+
+```css
+html, 
+body, 
+#app { 
+  height: 100%; 
+  margin: 0; 
+  padding: 0;
+}
+```
+
+
+
+**今天的算法题总结 剑指offer22求链表倒数节点 剑指offer10斐波那契数列**
+
+​	今天这俩都挺简单的，重新练习了一下数据结构和动态规划
+
+CSS一生之敌，明天重新思考一下怎么排版布置并且排版的时候可以先把调试控制台关掉
