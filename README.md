@@ -1833,9 +1833,9 @@ Promise 是一个构造函数，new 出来的 Promise 实例代表了一个异�
 通过 Promise 原型带有的.catch(err => {...})方法捕获错误，只要有错误直接进入.catch()，其捕获之前所有的错误
 如果不希望 catch 提前终止回调链，可以将 catch 直接挂载到要捕获错误的 Promise 对象上
 Promise.all()会发起并行的 Promise 异步操作，等所有异步操作全部结束才会执行下一步的.then 方法，类似于锁
-Promise.all(promiseArr).then(([r1, r2, r3] => {... return promise})) 这里的 promiseArr 里面有很多的 promise 实例，依次执行
+Promise.all(promiseArr).then(([r1, r2, r3] => {... return promise})) 这里的 promiseArr 里面有很多的 promise 实例，并行
 当前面是 Promise.all()时后面的 then 的回调也可以是一个对应数量的数组作为参数，如果少于就从前往后排
-**Promise.all 提供了更简单的顺序回调功能，但是更适合结构一样的**
+**Promise.all 提供了更简单的回调功能，但是更适合结构一样的**
 Promise.race()参数和 all 一样，但是只要一堆 Promise 中有一个完成了会执行 then，那么 then 的回调参数也只需要写一个了
 创建一个具体的异步操作:
 const process = new Promise(function(resolve, reject) {...})，具体的异步操作定义到 function 内部
@@ -2323,7 +2323,7 @@ p330
 
 ### 9.24
 
-#### vue3提供的两种快速创建工程化SPA项目的方式：
+**vue3提供的两种快速创建工程化SPA项目的方式：**
 
 使用vite或者使用vue-cli
 
@@ -2337,7 +2337,7 @@ p330
 
 
 
-#### 基于vite创建工程化的项目：
+**基于vite创建工程化的项目：**
 
 代码步骤：
 
@@ -3208,11 +3208,17 @@ set.forEach((val, key) => {...}) // 这个用的很少因为集合中val和key�
 let set = new Set(oldArr) / let arr = [...set] // 数组和集合的相互转换，可以用来清除重复元素
 ```
 
-​	set中的对象是不能释放的(设置对象是null后也不能释放)
+​		set中的对象是不能释放的(设置对象是null后也不能释放)
 
-​	解决方法是`new WeakSet()`这样对象就可以被释放了，但是weakset不能传入非对象参数，并且不能遍历，没有size属性
+​		解决方法是`new WeakSet()`这样对象就可以被释放了，但是weakset不能传入非对象参数，并且不能遍历，没有size属性
 
-ES6 p11
+​	**Map 字典数据类型**
+
+​		map是键值对的有序列表，并且<u>键和值都可以是任意类型</u>
+
+​		map同样有set的方法但是要传入参数键和值，也有WeakMap类型
+
+ES6 p12
 
 **Vue 项目**
 
@@ -3235,3 +3241,237 @@ body,
 ​	今天这俩都挺简单的，重新练习了一下数据结构和动态规划
 
 CSS一生之敌，明天重新思考一下怎么排版布置并且排版的时候可以先把调试控制台关掉
+
+
+
+
+
+### 10.1
+
+**ES6**
+
+​	**数组的新方法和新属性**
+
+​	常用的新方法并不很多，使用扩展运算符可以简化很多，下列代码展示
+
+```js
+// from方法 把伪数组转为真正的数组
+// ES5的方法
+var arr = [].slice.call(arguments)
+// ES6的方法
+let arr = Array.from(arguments, callback) // callback可以处理每个元素
+let arr2 = [...argument]
+// 使用的场景除了arguments这种伪数组还有使用querySelectAll返回值也是链表伪数组
+
+// of方法，把传入的参数混合到一个数组中
+let arr = Array.of(arg1, arg2, arg3, ...)
+
+// arr.copyWithin(0, 3) 把指定位置的数组成员复制覆盖到其他位置，这方法很少用，可以查文档
+
+// find和findIndex
+arr.find(callback) // 找出第一个符合条件的数组成员
+arr.findIndex(callback) // 找出第一个符合条件的数组成员下标
+
+// includes 类似于set中的has方法，indexOf可以替代这个方法
+```
+
+​	新增的属性与迭代器有关
+
+```js
+// 数组的内部属性
+arr.entries() // 下标和值组成的数组的迭代器
+arr.keys() // 数组下标的迭代器
+arr.values() // 数组值的迭代器
+// 这三个返回的都是迭代器，可以使用for of
+```
+
+​	**迭代器和生成器**
+
+```js
+// 获取迭代器的方法
+const it = arr[Symbol.iterator]()
+it.next() // 返回值是{value: ..., done: true/false}
+// 迭代器是可以快速访问数据的接口，可以在任意位置遍历往后，不需要完全遍历
+
+// 生成器，普遍跟迭代器相关
+// 关键字是generator，使用yield关键字可以将函数的状态挂起，可以改变执行流，提供异步编程的方法
+function * genFunc() {
+	console.log('start');
+	let x = yield '2';
+	console.log(x);
+	let y = yield '3'
+}
+const gen = genFunc()
+// 返回值是一个生成器，一种特殊的迭代器，使用其原型上的next方法可以随着yield走
+// 调用next每次返回都是{value: 当前yield的值, done: true/false}
+console.log(gen.next())
+console.log(gen.next())
+// 这个gen.next(arg)也可以传递参数，这个arg会给上一个yield的参数，比如第二次next调用arg会传递给x
+// 或者也可以说下一个next的参数是上一个yield的返回值，yield本身是没有返回值的
+```
+
+```js
+// 生成器的经典使用场景是给不具备iterator属性的对象提供了遍历操作
+// 下列代码示例
+function * objGen(obj) {
+	const props = Object.keys(obj);
+	for(const prop of propKeys) {
+		yield [prop, obj.prop];
+	}
+}
+
+const person = {
+	name: 'jack',
+	age: 18
+}
+person[Symbol.iterator] = objGen;
+// 这样person就是可迭代对象了
+```
+
+​	生成器可能还需要再看看
+
+ES6 p16
+
+今天先不推进项目进度，先重新调试练习一下CSS
+
+**CSS重新训练**
+
+​	重视顶线，中线，基线，底线四个文本排线，尤其是有图片的时候，使用vertical-align进行调整
+
+​	line-height如果写的是%则相对的是自身的字体大小(%用来调居中并不合适)
+
+​	margin和padding如果写%默认情况下都是参照父级宽度
+
+​	<u>思路开阔，给一个元素留白，方法有很多种，不只是给其本身添加margin或padding，还可以给其上下的元素添加这两个属性</u>
+
+​	用户状态展示可以参考9.26-10.2的CSS_train
+
+**今天的算法题总结 283-移动零 860-柠檬水找零**
+
+​	移动零这道题使用双下标的做法会更快，过段时间试试
+
+​	柠檬水找零这道题属于很容易知道找一张5一张10比找三张5更加合理，但是如果这两个决定没有合不合理之分呢
+
+
+
+### 10.2
+
+**ES6**
+
+​	**生成器的使用**
+
+​	可以通过yield分段和next方法实现函数流程的控制，减少回调函数的使用
+
+​	**Promise**
+
+​		Promise对象相当于一个容器，内部保存一些未来才会结束的异步事件
+
+​		各种异步操作都可以使用同样的方法进行处理，对象的状态不受外界的影响
+
+​		在Promise对象中会存储其状态属性 pending resolved rejected 分别是进行中，成功，失败
+
+​		创建一个Promise实例：
+
+```js
+// resolved和rejected本身也是函数
+let pro = new Promise((resolved, rejected) => {
+	// ...异步操作
+	if(success) resolved(res.data)
+	else rejected(res.error)
+})
+
+pro.then(val => {...}, err => {...}) // 对应resolved和rejected的函数，rejected的函数是可选的
+
+// 为了实现Promise的参数自定，可以封装函数返回Promise对象
+function timeOut(time) {
+	return new Promise((resolved, rejected) => {
+		setTimeout(() => {
+			resolved('这就是成功的返回值');
+			rejected('这就是失败的返回值');
+		}, time)
+	})
+}
+// 使用的时候
+timeOut(1000).then(val => {...})
+```
+
+​	如果想要连续调用then方法实现链式编程，则必须then的返回值也是Promise对象
+
+​	Promise的一些方法：
+
+```js
+// Promise.resolve(obj) 将现有的对象直接转化为Promise对象，仅处理resolved部分
+// Promise.reject(obj) 将现有的对象直接转化为Promise对象，仅处理rejected部分
+
+// Promise.all([Promise对象组成的数组]) 并行执行数组中的Promise，返回值也是Promise
+// 在数组中Promise都成功的情况下才进入resolve，否则reject
+
+// Promise.race([Promise对象组成的数组]) 可以用来设置请求的超时，请求完成和请求超时哪个先完成Promise就结束
+// Promise.finally(callback) 一般放最后，resolved和rejected都会走finally的callback
+```
+
+​	**async和await**
+
+​		async函数会返回Promise对象，本质上是生成器的语法糖，await和async配合使用
+
+​		await后面一般是Promise对象，不是的话也会转化成Promise
+
+​		如果async函数中有多个await，则then函数会等待所有的await指令都执行完毕才执行，并且then回调的参数就是async返回值
+
+​		只要有一个await的Promise对象是rejected状态剩下的await都不会再执行
+
+​		==理论上既然async函数的then方法最后会一次等所有await执行完毕，那写await有什么用呢==
+
+​		==await可以强行让异步结束再继续往下，可以很简单控制同步异步同时存在的时候的线性流程，由于同步本来就自上而下，一般情况下await后面是异步操作，否则意义不大==
+
+```js
+async function f() {
+	// 之前也还可以有很多await
+	return await 'hello async'
+}
+// await后面的值会被自动转化为Promise对象变成async的返回值，可以使用then，catch等Promise的方法
+```
+
+​	**class**
+
+​	可以像其他面向对象的语言一样创建对象，更加直观
+
+```js
+// 创建类
+class Person{
+	// 构造器函数会在实例化的时候立刻被调用
+	constructor(name, age) {
+		this.name = name;
+		this.age = age;
+	}
+	say() {
+		console.log(this.name);
+		return this.name;
+	}
+}
+
+// 类的继承，使用extends
+class Dog extends Animal {
+	constructor(name, age, color) {
+		super(name, age);
+		this.color = color;
+	}
+	// 在这里面可以写自己的方法或者重写父类的方法
+}
+```
+
+ES6视频部分完结
+
+element p41
+
+数据结构 p41
+
+简单更新了一些页面细节，明天完善用户首页内容
+
+**今天的算法题总结 53-最大子数组和119-杨辉三角II**
+
+​	最大子数组和这道题其实挺绕的，过段时间可以再回味看看
+
+​	杨辉三角可以使用动态规划双重循环做，理论上这个解法应该还行
+
+不管怎么说CSS还是写的头大
