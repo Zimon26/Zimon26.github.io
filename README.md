@@ -2548,7 +2548,7 @@ this.$http('url可以简写了', ...) // 用的时候这么写
 
 **vue3的router配置**
 
-​	vue-router 3.x只能结合vue2使用 vue-router 4.x只能结合vue3使用
+​	vue-router 3.x只能结合vue2使用 vue-router 4.x只能结合vue3使用 关键词vue3路由创建
 
 ​	配置流程：
 
@@ -2561,7 +2561,7 @@ import { createRouter, createWebHashHistory } from 'vue-router'
 const router = createRouter({
 	history: createWebHashHistory(),
 	routes: [
-		{path: ..., conponent: ... / redirect: ...},
+		{ path: ..., conponent: ... },
 		...
 	]
 })
@@ -3984,3 +3984,125 @@ arr.sort(function(a, b) {
 ​	迭代的写法相对复杂，效率两者相当
 
 经典焦虑
+
+
+
+### 10.11
+
+今天早上起来没有那么焦虑了
+
+**Nodejs**
+
+​	**process全局变量**
+
+​		主要两个作用：获取进程信息，执行进程操作
+
+```js
+// 资源：cpu，内存
+process.memoryUsage() // 返回内存的使用情况
+process.cpuUsage() // 返回cpu的使用情况
+// 运行环境：运行目录，node环境，cpu架构，用户环境，系统平台
+process.cwd() // 当前代码的工作目录
+process.version // 当前node版本
+process.versions // 当前node，v8，libuv等版本
+process.arch // 当前的cpu架构
+process.env // 环境类
+process.platform // 系统平台
+// 运行状态 启动参数，PID，运行时间
+process.argv // 启动时候传入的参数，是一个数组
+process.pid // 进程号
+process.uptime() // 运行时间，单位是秒
+// 事件
+process.on('exit', (code) => {
+	... // 当前任务退出时会执行回调，参数是退出码，exit回调只能写同步代码
+	// 另外还有其他事件类型比如beforeExit
+})
+// 标准输入输出，错误，跟文件的读写有一定的关系
+process.stdout.write(data)
+fs.createReadStream('文件路径').pipe(process.stdout)
+```
+
+​	p12
+
+**综设网站**
+
+​	感觉后续的ajax数据导入会是个大麻烦
+
+​	综设这个网站其实已经搭了很大一部分。后续很多问题都会集中到前后端交互
+
+​	*目前问题有查询会议面板中会议时间和会议室选择长度并不相等*
+
+**数据结构**
+
+​	**图**
+
+​		图的重点是顶点和边，图结构的特点就是一组顶点一组边，边可以是有向的也可以是无向的
+
+顶点的度就是其相连的边的数目，边可以有方向，权重类的属性
+
+​		**图的表示**
+
+​			顶点可以封装成节点，然后所有节点存储在数组或者链表中
+
+​			主要问题是边的表示
+
+​			<u>边使用邻接矩阵表示，实际上就是二维数组的表示方法，需要让顶点和数组的下标有对应关系</u>
+
+​			邻接矩阵可以很好的实现有向图和权重图，但如果是一个稀疏图，邻接矩阵会有大量的0，并不合适
+
+​	p122
+
+**vue2转vue3**
+
+​	**组合式api 基本数据类型和对象类型的属性的新的定义方式 vue3.2及以上**
+
+​	属性和方法不一定需要分开写在data和methods，而且methods里面用属性反而不需要this
+
+​	如果是基础数据类型要使用`refSomething.value`，不能直接调用
+
+​	没有this的原因很大程度上也是因为vue3没有`new Vue().mount('render: h => h(App)')`这个过程而是`createApp(App)`
+
+```vue
+<script setup>
+import { reactive, ref } from 'vue'
+// 基本数据类型使用ref
+const msg = ref('我是message')
+const update = () => { msg.value = '我是修改后的msg' }
+// 对象数据类型使用reactive
+const objMsg = reactive({
+	msg: '我是对象msg'
+})
+const updateObjMsg = () => {
+	objMsg.msg = '我是修改的对象msg'
+}
+</script>
+```
+
+**vue3路由配置和使用**
+
+​	路由创建和配置部分之前已经写过，直接搜索vue3路由创建即可
+
+​	vue3路由使用
+
+```js
+// 需要使用路由的文件中
+import { useRoute, useRouter} from 'vue-router'
+const router = useRouter()
+const route = useRoute()
+// 路由路径
+console.log(route.path)
+// 路由跳转
+router.push('home')
+```
+
+​	p4
+
+**今天的算法题总结 35-搜索插入位置 104-二叉树的最大深度**
+
+​	搜索插入位置这道题挺好的，复盘了二分查找的代码
+
+​	二叉树的最大深度这道题可以引申出DFS和BFS，等把图部分看完了研究一下
+
+离谱的是竟然感觉网站快要搭建完毕了，这个网站做完之后应该ajax部分也很熟悉了，然后开始ts和vue3
+
+明天看看代理和反射是什么东西
