@@ -4078,11 +4078,11 @@ const updateObjMsg = () => {
 </script>
 ```
 
-**vue3路由配置和使用**
+​	**vue3路由配置和使用**
 
-​	路由创建和配置部分之前已经写过，直接搜索vue3路由创建即可
+​		路由创建和配置部分之前已经写过，直接搜索vue3路由创建即可
 
-​	vue3路由使用
+​		vue3路由使用
 
 ```js
 // 需要使用路由的文件中
@@ -4106,3 +4106,304 @@ router.push('home')
 离谱的是竟然感觉网站快要搭建完毕了，这个网站做完之后应该ajax部分也很熟悉了，然后开始ts和vue3
 
 明天看看代理和反射是什么东西
+
+
+
+### 10.12
+
+**vue2转vue3**
+
+​	**定义全局变量和方法**
+
+​		全局变量和方法都是直接写到main.js里面
+
+​		vue2 直接添加到vue原型 `Vue.prototype.Utils = Utils`Utils就是包括全局变量和方法的对象，使用`this.Utils.isEmpty()`
+
+​		vue3 添加到app的属性 `app.config.globalProperties.Utils = Utils`，使用如下
+
+```js
+import { getCurrentInstance } from 'vue'
+const { proxy } = getCurrentInstance()
+proxy.Utils.isEmpty();
+```
+
+​	**侦听器watch的变化**
+
+​		直接看vue3的使用，监听多个就多写几个watch方法
+
+```js
+import {ref, watch} from 'vue'
+const msg = ref('123456')
+watch(
+	msg,
+	(newValue, oldValue) => {
+		...
+	},
+	{immediate: true, deep: true}
+)
+```
+
+​	**父子组件调用 逻辑上这两个区别不大，写法有区别**
+
+​		**vue2**
+
+​			1 父组件向子组件传递参数使用prop属性
+
+​			2 父组件调用子组件方法使用ref
+
+```js
+// 父组件中
+<son ref="sonRef"></son>
+// 调用子组件的方法，parentOpSon是子组件的方法
+this.$refs.sonRef.parentOpSon('这个是父组件的参数')
+```
+
+​			3 子组件调用父组件方法，其实子组件无论是向父组件传递参数还是调用父组件方法都是子触发事件父处理事件
+
+```js
+// 子组件中
+methods: {
+	sonOpParent() {
+		this.$emit('opParent', '我是子组件给的参数')
+	}
+}
+// 父组件中
+<son @opParent="parentMethod"></son>
+methods: {
+	parentMethod(e) {
+		...
+	}
+}
+```
+
+​	**vue3**
+
+​		1 父组件向子组件传递参数 主要就是定义props属性和vue2不同
+
+```js
+// 子组件
+import { ref, defineProps } from 'vue'
+const props = defineProps({
+	msg: {
+		type: String,
+		default: ''
+	}
+})
+
+// 父组件
+<son :msg="'父组件给子组件传递参数'"></son>
+```
+
+​		2 父组件调用子组件的方法
+
+​			子组件暴露自身方法，父组件创建子组件标签同名ref，使用ref.xxx调用子组件的方法
+
+```js
+// 子组件
+import { ref, defineProps, defineExpose}
+const parentOpSon = (parentMsg) => {
+	...
+}
+// 子组件要暴露方法
+defineExpose({
+	parentOpSon
+})
+
+// 父组件
+<son ref="sonRef"></son>
+
+// 手动创建子组件的ref
+const sonRef = ref();
+const opSon = () => {
+	sonRef.value.
+}
+```
+
+​		3 子组件调用父组件方法
+
+```js
+// 子组件
+const emit = defineEmits()
+const opParent = () => {
+	emit('opParent', '子组件传递给父组件的参数')
+}
+
+// 父组件
+<son @opParent='parentMethod'></son>
+const parentMethod = (e) => {
+	...
+}
+```
+
+​	**生命周期函数**
+
+​		vue2省略
+
+​		vue3
+
+​			所有方法名前面添加了on比如`onMounted`
+
+​			取消了beforeCreate和created，直接写的函数比如自己写的init函数就会在这个时间段调用
+
+​			destroyed换成了onUnmounted，beforeDestroyed换成了onBeforeUnmount，效果相同
+
+```js
+const init = () => {
+	console.log('我在beforeMount之前')
+}
+init()
+onBeforeMount() {
+	...
+}
+```
+
+​	最后一部分vuex状态管理，过段时间看
+
+**TypeScript**
+
+​	ts的安装配置部分省略
+
+​	**ts的类型限制**
+
+​		ts可以限制类型，如果声明的时候不写，默认会等于赋值类型的变量的数据类型
+
+​		<u>这些类型都要小写</u>
+
+​		ts也不允许函数多传参数
+
+```ts
+let a: number = 100 // 这种写法实际上不常用
+// 限制函数传参以及返回值是最有用的
+function add(a: number, b: number): number {
+	return a + b;
+}
+
+let b: 12; // 直接使用字面量限制类型，但是效果如同常量，所以也不是这么用的
+// 可以实现简单的枚举类型，正式称为联合类型
+let gender: 'male' | 'female';
+// 不写就是any，跟js一样不推荐随便使用，any可以赋值给其他值导致其他值类型检查也消失
+let some;
+// 如果不清楚变量的类型可以这么写，unknown不能随便传值，解决上面的问题
+// 实际上unknown类型就是类型安全的any，非要赋值的话使用typeof进行类型检查后可以
+let something: unknown;
+
+// 类型断言，手动告诉编译器实际类型，防止编译器报错，以下两种写法都行
+s = e as string;
+s = <string>e;
+
+// void和never，主要是用来限制函数的返回值
+function fn(): void {
+	// 不写 / return / return null / return undefined
+}
+// never连undefined都不返回，适用于报错类函数，用的少
+function fn2(): never {
+	throw new Error('error');
+}
+
+// object，限制是一个对象，但是使用极少，因为对象种类太多，等于不限制
+// 限制的应该不是是不是对象而是对象的属性结构类型，加?的是可选属性
+let jack: {name: string, age: number, gender?: 'male' | 'female'};
+// 如果限制是要有这个属性，其他属性不管
+let mary: {name: string, [propName: string]: any};
+
+// 限制函数类型
+let func: (a: number, b: number) => number;
+func = (a: number, b: number): number => a + b; // 这个函数必须匹配func的类型
+
+// 限制数组类型
+let arr: string[] // 限制这个是字符串类型的数组
+let arr2: Array<number> // 效果相同
+
+// 限制元组类型，本质就是长度固定的数组
+let myTuple: [string, number];
+
+// 限制枚举类型
+// 先定义枚举类型
+enum Gender {
+	male: 0,
+	female: 1
+}
+let gen: Gender;
+gen = Gender.male;
+
+// 给类型起别名，太长了不好写可以自己取名字
+type myType = number | string | boolean;
+let mytype: myType;
+```
+
+​	**编译选项**
+
+​		自动编译修改后的文件
+
+```
+tsc xxx.ts -w // 表示watch侦听，自动监视变化就重新编译
+```
+
+​		想要一次性编译所有文件等自动化功能需要配置`tsconfig.json`文件，在终端输入`tsc --init`即可
+
+```
+// 完成上述操作后
+tsc 编译所有文件
+tsc -w 监视模式编译所有文件
+```
+
+​	**tsconfig.json的配置选项**
+
+```json
+{
+  // ** 表示任意目录，* 表示任意文件
+  // 要编译的文件目录
+	"include": [
+    "./src/**/*"
+  ],
+  // 不编译的文件目录 
+  "exclude": [
+    // 默认值是 node_modules, bower_components, jspm_packages
+    "./src/no/**/*"
+  ],
+  "extends": "引入其他json的路径",
+  "files": [
+    "core.ts",
+    "main.ts"
+    // 直接列出所有要编译的文件的名字
+  ],
+  // 编译器的配置选项
+  "compilerOptions": {
+    "target": "es6", //指定编译出来的ES版本，默认情况转ES5
+    "module": "es6", //指定模块化的规范
+    "lib": [], //使用什么库，但是这个库如果是浏览器中一般不手动操作，默认就是浏览器环境
+    "outDir": "./dist", //编译后文件所在目录
+    "outFile": "./dist/app.js", //把代码合并成为一个文件，实现必须module属性是amd或system
+    "allowJs": false, // 是否对js文件进行编译
+    "checkJs": false, // 是否用ts规范检测js的语法
+    "removeComments": true, //是否编译后移除注释
+    "noEmit": false, //默认false，不生成默认的编译产生文件，所以默认会产生文件
+    "noEmitOnError": false, //有错误的时候就不生成编译后的文件
+    "alwaysStrict": false, //编译后的文件是否开启严格模式
+    "noImplicitAny": false, //是否不允许隐式的any类型
+    "noImplicitThis": false, //是否不允许不明确的this调用
+    "strictNullHChecks": false, //是否严格检查空值，如果配置了会大幅使用?.等运算符，
+    "strict": false, // 所有严格检查的总开关
+  }
+}
+```
+
+​	p10
+
+**综设网站**
+
+​	已经第二次掉坑了，输入框不设置v-model会不能输入，至少对于elementui如此
+
+​	解决了对齐不对的问题，原因是有两层 el-form-item 重叠，margin也重复了
+
+​	前端部分基本搭建完毕，明天开始使用express进行测试
+
+
+
+**今天的算法题总结 191-位1的个数 100-相同的树**
+
+​	位1的个数这道题可以用与的方法也可以直接转化成字符串处理
+
+​	相同的树这道题挺练手适合双树遍历，并且练习了递归的额外退出条件
+
+网站这周之前应该可以全部做完了，心情大好
