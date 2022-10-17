@@ -4583,3 +4583,135 @@ handler: {
 ​	对称二叉树这道题是非常有意思的二叉树递归题目，双变量递归，挺值得
 
 ​	最长公共前缀这个是属于非遍历不可的，尽量设置良好的退出条件就行
+
+
+
+### 10.17
+
+**Promise**
+
+​	整个在Promise的代码可以同步执行，但是仅限于同步代码，在new Promise的时候被执行
+
+​	Promise对象内部两个状态fulfilled和rejected可以供后续的then等方法判定
+
+​	.catch方法本质上就是.then(null, reject => {...})  .finally方法类似于.then(f, f)不管Promise结果是什么都会执行
+
+​	.finally并不一定放到最后执行，可以用于各种清除，但是.finally函数里面写返回值没什么意义
+
+​	Promise链能执行的核心原因是.then方法返回的还是一个Promise，then函数中手动返回Promise可以构建异步行为链
+
+​	为了能实现后续的操作(如果有)，异步行为应该都返回Promise
+
+​	.catch可以有很多个，组成catch链，上一个处理不了的可以throw到下一个catch执行
+
+**TypeScript**
+
+​	也提供了抽象类，前面加个abstract即可，不能实例化，只能被继承，也可以写抽象方法
+
+​	接口用于定义类的结构，类似于type类型，可以通过直接指定接口限定数据
+
+​	接口中的所有属性都不能有真实的属性值，包括接口中的方法，所有方法都是抽象方法
+
+​	比起抽象类就是用于继承，接口就是用于实现，接口本身就是对类的限制，提供规范
+
+​	属性的默认值就是public，另外还有private和protected
+
+​	get和set这样写，使用的时候也会自动操作
+
+```js
+get name() {
+	return this._name
+}
+
+set name(newName) {
+	return this._name = newName
+}
+
+// 使用，自动调用get和set，注意这个地方真实的属性名是前面带下划线的
+person.name = 'zs'
+let name = person.name
+```
+
+​	构造函数可以简写
+
+```js
+class some {
+	constructor(public name: string, public age: number)
+  // 这样的话属性也可以不用再声明
+}
+```
+
+​	**泛型**
+
+```
+// 一般泛型的字母选用T-type K-key V-value E-enum
+function func<T>(a: T): T {
+	return a
+}
+
+// 泛型函数可以直接调用也可以指定泛型
+let a: number = 0
+let some1 = fn(a)
+let some2 = fn<string>(a)
+
+// 可以通过接口指定泛型的种类
+Interface Inter {
+	length: number
+}
+// 这个泛型里面至少要有length这个属性
+function func2<T extends Inter>(a: T): T {
+	return a.length
+}
+```
+
+​	p22 剩下的部分是一个案例暂时不看，跟java差不多
+
+
+
+**Vue3**
+
+​	这段时间以来最硬的骨头，找了个新的项目演示视频，跟着做一下vue3项目
+
+​	vue3的fragment特性可以支持在模板里面有多个根节点
+
+​	vite配置的项目，入口文件是index.html而不是webpack的main.js
+
+​	**ref全家桶**
+
+​	除了最常见的`ref reactive`
+
+​	另外本质上从源码来看ref如果不是基础数据类型，也会最终调用到reactive
+
+```js
+isRef() // 判断是否是ref对象，vue源码中使用比较多
+shallowRef() // 浅层次的ref响应，不响应内部深层的内容
+// 一般情况下为了不影响修改到shallowRef的深层，ref和shallowRef不一起写
+triggerRef() // 触发强制更新，普通的ref()会自动调用这个函数
+customRef() // 比较复杂，可以手动配置收集依赖和触发响应
+
+toRef(target, attr) // 把某个数据转成ref类的，抓响应式对象的属性，只能修改响应式对象的值，非响应式视图不会改变
+toRefs(target) // 把响应式对象的所有属性抓出来改成ref，可以使用解构赋值拿取
+toRaw() // 把一个响应式的对象重新变成普通对象
+```
+
+​	p10
+
+
+
+**Electron**
+
+​	在electron的体系中，main.js控制主进程，主进程是运行在nodejs的实例，main.js负责生命周期，原生窗口展示，管理渲染进程等
+
+​	其他的js文件可以是主进程导入的渲染器进程，负责展示内容，渲染进程都跑在网页中而不是nodejs
+
+​	使用preload.js可以给渲染器挂载一些全局的属性或者方法
+
+
+
+
+
+**今天的算法题总结 414-第三大的数 507-完美数**
+
+​	今天这两道题都很简单
+
+挺想学一下electron，想到快完工的综设网站还有点头大，明天有闲处理一下
