@@ -4715,3 +4715,149 @@ toRaw() // 把一个响应式的对象重新变成普通对象
 ​	今天这两道题都很简单
 
 挺想学一下electron，想到快完工的综设网站还有点头大，明天有闲处理一下
+
+
+
+### 10.18
+
+失眠成为常态 1:25 看了点electron，写到下面去 上床 2:03
+
+**Electron**
+
+​	preload.js的作用是将不同类型的进程桥接在一起，它既可以操作dom也可以有一部分nodejs的系统api以及electron api
+
+​	electron给每个打开的BrowserWindow生成一个独立的渲染器进程，渲染器无权直接访问require以及nodejs的api
+
+​	官方文档对于preload.js的描述
+
+​		预加载（preload）脚本包含了那些执行于渲染器进程中，且先于网页内容开始加载的代码 。 这些脚本虽运行于渲染器的环境中，却因能访问 Node.js API 而拥有了更多的权限
+
+​	预加载脚本与渲染器共享一个window对象，可以使用contentBridge传递数据和方法，不能直接window.some = some因为上下文隔离
+
+​	**进程间通信**
+
+​		**渲染器进程到主进程 单向**
+
+​		渲染器使用`ipcRenderer.send`发送消息(渲染器间接使用，这个函数变体在preload暴露出来)，主进程使用`ipcMain.on`接受消息
+
+​		常见的使用场景是web内容调用主进程API
+
+```js
+// preload.js 省略引入过程
+contentBridge.exposeInMainWorld('electronAPI', {
+	setTitle: (title) => ipcRenderer.send('set-title', title)
+})
+
+// main.js event是一个IpcMainEvent结构，可以获取比如哪个渲染进程发来的信息
+function handleSetTitle(event, title) {
+	const webContents = event.sender
+	const win = BrowserWindow.fromWebContents(webContents)
+	win.setTitle(title)
+}
+
+ipcMain.on('set-title', handleSetTitle)
+
+// renderer.js中只需要将set-title当成一种事件处理即可
+```
+
+​		**渲染器进程到主进程 双向**
+
+​		渲染器使用`ipcRenderer.invoke`，主进程使用`ipcMain.handle`
+
+​		`ipcRenderer.invoke`的返回值是一个Promise，因为要等待主进程的响应
+
+​		常见的使用场景是渲染器进程调用主进程API并等待结果
+
+```js
+// preload.js 省略引入过程
+contextBridge.exposeInMainWorld('electronAPI', {
+	openFile: () => ipcRenderer.invoke('dialog:openFile')
+})
+
+// main.js
+async function handleOpenFile() {
+	const { canceled, filePaths } = await dialog.showOpenDialog()
+  if (canceled) {
+    return
+  } else {
+    return filePaths[0]
+  }
+}
+ipcMain.on('dialog:openFile', handleOpenFile())
+
+// renderer.js
+btn.addEventListener('click', async () => {
+  const filePath = await window.electronAPI.openFile()
+  filePathElement.innerText = filePath
+})
+```
+
+​		**主进程到渲染器进程**
+
+​		主进程发送到渲染器进程的时候要指定是哪个渲染器接收消息，通过`WebContents`实例发送到渲染器进程，其内部有一个`send`方法
+
+​		使用场景比如说应用上层的菜单等操作网页
+
+```js
+// main.js 使用webContents.send('事件名', 参数)发起事件
+function createWindow() {
+	const mainWindow = new BrowserWindow({
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js')
+    }
+  })
+
+  const menu = Menu.buildFromTemplate([
+    {
+    	// 一级菜单
+      label: app.name,
+      // 子菜单
+      submenu: [
+        {
+          click: () => mainWindow.webContents.send('update-counter', 1),
+          label: 'Increment',
+        },
+        {
+          click: () => mainWindow.webContents.send('update-counter', -1),
+          label: 'Decrement',
+        }
+      ]
+    }
+  ])
+
+  Menu.setApplicationMenu(menu)
+  mainWindow.loadFile('index.html')
+}
+
+// preload.js 给渲染器函数注册限制过功能的ipcRenderer.on('监听的事件名', 操作或者其他)
+// 这个地方写回调是可以方便渲染器函数自己操作，本质上也是有限制的暴露了ipcRenderer.on方法
+contextBridge.exposeInMainWorld('electronAPI', {
+	handleCounter: (callback) => ipcRenderer.on('update-counter', callback)
+})
+
+// renderer.js 通过window.electronAPI.handleCounter()传入自己的callback处理函数
+// 这个函数隐形内部调用ipcRenderer.on监听了main.js发送过来的数据
+const counter = document.getElementById('counter')
+
+window.electronAPI.handleCounter((event, value) => {
+  const oldValue = Number(counter.innerText)
+  const newValue = oldValue + value
+  counter.innerText = newValue
+  // 如果要继续向main.js返回一些信息，使用以下代码，然后main.js监听即可
+  event.sender.send('counter-value', newValue)
+})
+```
+
+​		**渲染器到渲染器 无直接的方法，可以使用主进程代理**
+
+​	**MessagePort消息端口**
+
+
+
+**今天的算法题总结 342-4的幂 700-二叉搜索树中的搜索**
+
+​	数字类型的题目可以考虑二进制的规律
+
+​	留意二叉树题目的广度深度搜索
+
+设想能不能用electron写一个可以自动检测复制粘贴然后查字典的呢
