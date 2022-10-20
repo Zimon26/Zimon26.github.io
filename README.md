@@ -4850,8 +4850,6 @@ window.electronAPI.handleCounter((event, value) => {
 
 ​		**渲染器到渲染器 无直接的方法，可以使用主进程代理**
 
-​	**MessagePort消息端口**
-
 
 
 **今天的算法题总结 342-4的幂 700-二叉搜索树中的搜索**
@@ -4861,3 +4859,202 @@ window.electronAPI.handleCounter((event, value) => {
 ​	留意二叉树题目的广度深度搜索
 
 设想能不能用electron写一个可以自动检测复制粘贴然后查字典的呢
+
+
+
+### 10.19
+
+昨天想的这个electron应用的主要问题是我不知道该怎么截取鼠标选中事件，要不然就必须到剪切板去查找，等等再研究
+
+**Vue3**
+
+​	**计算属性computed**
+
+```js
+let total = ref(0)
+total = computed<number>(() => {
+	return ... // 算出来是total的值就行
+})
+```
+
+​	**侦听器watch**
+
+```js
+// 侦听器可以一个函数侦听多个值
+watch([message1, message2], (newVal, oldVal) => {
+	// newVal和oldVal也会相应变成数组的形式
+}, {deep: true})
+// 如果监听的是reactive写不写deep效果相同
+```
+
+​	**高级侦听器watchEffect**
+
+```js
+// 非惰性，自动调用，如果有callback会先执行callback
+let message = 'jack'
+let stop = watchEffect((可选的callback) => {
+	console.log(message) // message一改变就会被打印出来
+}, {配置选项，可以上网查})
+// 调用stop可以停止侦听
+stop()
+```
+
+​	杂：vite创建的项目使用less只需要npm i less -D即可，less-loader是webpack的配置
+
+​	**熟悉的组件传参**
+
+​		父组件向子组件传参，setup语法糖的情况下不需要引入`defineProps`
+
+​		另外在配合ts的情况下子组件可以这样设定props
+
+```js
+// 子组件中
+type Prop = {
+	title: string,
+	data: number[]
+}
+defineProps<Prop>()
+```
+
+​		子组件向父组件传参，同样setup语法糖情况下不需要引入`defineEmits`
+
+```js
+// 子组件
+const emit = defineEmits(['自定义的事件名']) // 获得的emit就是一个函数
+emit('自定义的事件名', value) // 用这个函数触发事件
+// 父组件
+<Menu @自定义的事件名="func"></Menu>
+
+// 但是直接这样使用拿到的是响应式数据，需要转化父组件才能拿到真实的值
+// 所以子组件还要添加
+defineExpose({
+  title,
+  list
+})
+
+// 对于整个props属性都有很大的变化，属性名和类型都已经由ts类型指定提供，如果还需要提供默认值需要这样写(ts写法)
+withDefaults(defineProps<Props>(), {
+  title: '我是默认值',
+  list: () => [1, 2, 3] //为了防止引用数据类型直接引用，通过返回对象的方式
+})
+```
+
+​	p16
+
+
+
+**Electron**
+
+​	已经通过main.js读取到了剪切板的内容，接下来是寻找一个合适的可以查单词的网络接口，调用
+
+​	网络接口已经注册了，现在只需要调整系统托盘的功能以及修改更加自动化，比如自动侦听剪切板等
+
+​	最基础的功能已经完成
+
+
+
+**综设账本展示网页**
+
+​	vite新建vue项目不是用之前的方式，`npm init vite-app 项目名`这个智能程度不够并且vue3的版本不新
+
+​	用这个`npm create vite@latest`
+
+
+
+**今天的算法题总结 0103面试题-URL化 54剑指offer-二叉搜索树的第k大节点**
+
+​	部分这种简单的字符串数组题更像是练手字符串和数组的一些基本内置方法
+
+​	这个二叉树实在是解释了递归的调用顺序问题，有些时候可以传入引用(包装类)防止值传递出现一些问题
+
+
+
+### 10.20
+
+**Vue3**
+
+​	**组件**
+
+​	全局组件
+
+```js
+// main.ts里面
+import Card from './component/Card/Card.vue'
+createApp(App).component('Card', Card).mount('#app')
+```
+
+​	局部组件就是在要使用的组件里面import，传统写法
+
+​	递归组件，核心是组件里面也是组件，整体使用有点麻烦，可以查
+
+​	动态组件 使用就是`<component :is="要用的组件名"></component>`
+
+```js
+// 在vue2中is通过组件名切换，vue3中通过组件实例切换
+// markRaw是因为把组件做成响应式并没有什么意义
+const tab = reactive<Com[]>([
+	{name: 'A', comName: markRaw(A)},
+	{name: 'B', comName: markRaw(B)},
+])
+```
+
+​	p19
+
+
+
+**综设数据展示网站**
+
+​	vue3切忌直接修改ref和reactive变量，这样会导致响应性丢失，ref使用.value，reactive使用对应的属性方法
+
+​	==如果想非要调整代码的执行顺序==
+
+​		这个问题已经是老生常谈，如何良好的控制同步异步并行的代码线性走流程，方案是直接把同步代码放到then里面，强行加入到微任务队列(Promise的then，catch，finally都是微任务意味着就算Promise立刻被resolve也是异步执行)
+
+```js
+Promise.resolve()
+	.then(() => alert('promise done')) // 实际上这个地方也可以写点异步操作
+	.then(() => alert('code finish'))
+// 这样代码的流程就被强行控制
+```
+
+​	==再来讲讲async和await==
+
+​		async函数就是让返回值强行是一个resolve状态的Promise，简而言之就是包装，而await添加到一个Promise之前就是让js引擎等这个Promise出结果，然后以Promise的结果继续执行(一般也就是直接把resolve的结果抓出来，不进行Promise包装)，实际上暂停当前async函数的执行，让CPU去做其他事，基本上这个就是Promise.then的优雅写法
+
+```js
+// 把这段使用Promise的代码改成使用async和await的
+function loadJson(url) {
+  return fetch(url)
+    .then(response => {
+      if (response.status == 200) {
+        return response.json();
+      } else {
+        throw new Error(response.status);
+      }
+    });
+}
+
+loadJson('https://javascript.info/no-such-user.json')
+  .catch(alert); // Error: 404
+  
+// async和await模式
+async function loadJson(url) {
+	const response = await fetch(url)
+  if(response.status == 200) {
+		const json = await response.json()
+  	return json
+  } else {
+		throw new Error
+  }
+}
+```
+
+
+
+**今天的算法题总结 9-回文数 155-最小栈**
+
+​	忘记了`arr.reverse()`会改变原生数组而不是返回一个新的
+
+​	最小栈这道题重新练习了从一个数组中找第几大/小的数这个流程，在数组只有1个元素的时候要设置max = second = 这个元素
+
+​	另一种做法是直接做一个专门的最小值栈
