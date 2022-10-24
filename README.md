@@ -5067,7 +5067,7 @@ async function loadJson(url) {
 
 ​	**插槽的使用**
 
-```
+```vue
 // 子组件提供插槽
 <div>
 	<slot name="header"></slot>
@@ -5091,7 +5091,7 @@ async function loadJson(url) {
 
 ​		把组件写到keep-alive里面可以缓存组件的状态，缓存组件有两个新的生命周期
 
-```
+```vue
 <keep-alive :max="10"> // max限制最大缓存组件的数目，遵循队列原则
 	// 在keep-alive里面每次只能有一个组件被展示
 	<A></A>
@@ -5121,3 +5121,476 @@ onDeactivated(callback)
 ​	圆圈中数字这道题还有点复杂，需要重新看看
 
 明天重新看一眼深拷贝
+
+
+
+### 10.22
+
+**会议室综设网站**
+
+​	添加登录校验功能，新增用户表，使用表中字段判断用户的权限
+
+**Vue3**
+
+​	**新增内置的transition组件**
+
+​		可以使用这个功能给v-if，v-show和动态组件添加切换时的动画，实际上类似于简单的css3动画属性
+
+```vue
+// 模板中
+<transition name="fade"> // 这个name属性是必须写的
+	<div v-if="flag" class="box"></div>
+</transition>
+
+// style部分
+<style>
+.box {
+	width: 200px;
+	height: 200px;
+}
+// 这三个就是元素显示的起始状态，中间状态和结束状态
+.fade-enter-from {
+	width: 0;
+	height: 0;
+}
+.fade-enter-active {
+	transition: all 1.5s ease;
+}
+.fade-enter-to { // 其实这个属性一般是不写的，跟原生一样就行
+	width: 200px;
+	height: 200px;
+}
+// 与之对应元素的消失使用.fade-leave-from .fade-leave-active .fade-leave-to
+</style>
+```
+
+​		实际上类名也可以自己定义，主要的作用是使用现成的图形库
+
+​		`npm i animate.css`然后在组件里面`import animate.css`即可
+
+```vue
+// 可以自己给换个名
+<transition enter-from-class="enter-from-this"></transition>
+
+.enter-from-this {
+	...
+}
+
+// 可以使用比如animate.css这样的动画库
+<transition enter-from-class="animate__animated animate__bounce"></transition>
+
+// 另外本身transition标签还有一些属性
+// 比如duration控制动画化的时长单位是毫秒
+<transition :duration="{enter: 50, leave: 500}"></transition> // 可以单独调整进出动画的时长
+```
+
+​		transition还有生命周期函数，使用这个可以用函数式的动画库gsap
+
+```vue
+<transiton @before-enter="enterFrom" @enter-cancelled="cancelEnter"></transition>
+// 给enter前定一个生命周期函数，对应css的时间点就是enter-from-class
+<script>
+let enterFrom = (el, callback) => { //接受的参数el就是动画改变的元素，callback是当前生命周期执行完毕后的回调
+	console.log('这就是生命周期函数')
+}
+let cancelEnter = (el, callback) => {console.log('过渡效果还没完被打断了')}
+</script>
+
+// appear属性，初始状态的动画 appear-from-class appear-active-class appear-to-class
+<transition appear appear-from-class="..."></transition>
+```
+
+​	p27
+
+**数据结构**
+
+​	**广度优先搜索 BFS**
+
+​		广度优先搜索步骤
+
+​			1 创建队列
+
+​			2 将顶点v标记为已经发现的，灰色，v进入队列
+
+​			3 将v所有的未访问的邻接点(白色)，加入到队列中
+
+​			4 将v标记为黑色
+
+​	p130
+
+有点劳累看不进去书，先看会儿react
+
+**React**
+
+​	**React的Hello World**
+
+​	对于react来说babel除了传统的es6转es5之外，还可以将jsx转为js
+
+```react
+// 使用react实现一个hello react
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+
+<body>
+  <div id="test"></div>
+  // 这三个文件的引入有严格的顺序
+  <script type="text/javascript" src="./react/react.development.js"></script>
+  <script type="text/javascript" src="./react/react-dom.development.js"></script>
+  <script type="text/javascript" src="./react/babel.min.js"></script>
+  <script type="text/babel"> // 这个地方要写babel类型
+    // 创建虚拟dom，这是jsx的语法方式
+    const VDOM = <h1>Hello React</h1>
+    // 渲染虚拟dom到指定的位置
+    ReactDOM.render(VDOM, document.getElementById('test'))
+  </script>
+</body>
+
+</html>
+// 如果上面的案例不使用jsx
+// 内部是这样的，如果内部有嵌套元素会非常难写所以使用jsx
+const VDOM = React.createElement('h1', {id: 'title'}, 'Hello React') // 三个属性是标签名，标签属性，innerHTML
+
+// 并且jsx还支持非常类似原生html的写法
+const VDOM = (
+	<h1 id="title">
+    	<span>Hello React</span>
+  </h1>    
+)
+```
+
+​	jsx主要是方便创建虚拟dom，纯js创建虚拟DOM基本上不使用
+
+​	**虚拟DOM以及jsx语法**
+
+​	虚拟DOM本质就是一般对象，真实DOM上有大量的属性，而虚拟DOM十分精简，没有过多的属性
+
+```react
+const myId = 'title'
+const myData = 'Hello React'
+const VDOM = (
+  // html元素引入js使用{}包起来
+  // 引入样式class换成className
+  // 行内样式使用对象，写{{key: value}}不是插值表达式，外层表示是js，内层表示是对象，另外组合词汇改成小驼峰
+  // jsx要求根标签只能有一个，这点类似于vue的template
+  // 标签必须带自结束，自闭合
+  // 标签的首字母如果小写字母开头就自动转html元素如果，如果html没有这个标签就报错，如果是大写字母开头认为是组件
+	<h2 className="title" id={myId}>
+  	<span style={{color: 'white'}}>{myData}</span>
+  </h2>
+)
+```
+
+​	jsx渲染数组类型 (类似于v-for的操作)
+
+```react
+const data = ['jack', 'sam', 'peter']
+const VDOM = (
+  <div>
+  	<h3>写点名字</h3>
+    <ul>
+    	{data.map(item => {return <li key={index}>{item}</li>})} // 这个地方key写index并不合适
+    </ul>
+  </div>
+)
+```
+
+​	**组件的定义和使用**
+
+​		组件的概念是实现局部功能效果的代码以及资源的集合
+
+​		组件有两种定义方式，函数式组件和类式组件
+
+​		先讲讲函数式组件，适用于简单组件的定义
+
+```react
+<script type="text/babel">
+  // 先创建函数式的组件
+	function Demo() {
+		return <h2>我是用函数定义的组件(更适合简单组件)</h2>
+	}
+  // 把组件渲染到页面
+  ReactDOM.render(<Demo/>, document.getElementById('test'))
+  // 上述语句的执行
+  // React解析组件标签，找到MyComponent组件，发现组件是函数定义，随后调用函数，将返回的虚拟DOM转为真实DOM呈现
+</script>
+```
+
+​		类式组件，适用于复杂组件
+
+​		回顾类语法，子类如果写了构造器必须调用父类的`super()`方法，并且super要放在其他属性之前，在类中可以直接写赋值语句例如`a = 1`这样就是把`a`这个属性挂载到实例上
+
+```react
+<script>
+	class MyComponent extends React.Component {
+    // render的调用说明React隐式new了MyComponent的实例，render函数中的this也是一个实例
+		render() { // 有没有构造器看这个组件的要求，但是render()必须有
+			return (
+      	<h2>我是用类定义的组件(更适合复杂组件)</h2>
+      )
+    }
+  }
+  ReactDOM.render(<MyComponent/>, document.getElementById('test'))
+</script>
+```
+
+​	**组件实例的三大属性** -- 实例直接意味着是类式组件，因为函数式组件根本没有实例(最新版提供了hooks后可以使用)
+
+​	**state属性** -- 相当于组件的状态
+
+```react
+<script type="text/babel">
+	class Weather extends React.Component {
+		constructor(props) {
+    	super(props)
+      // 构造器的初始化状态，设置state属性以及解决changeWeather实例方法的this指向
+    	this.state = {
+    		isHot: false
+    	}
+      this.changeWeather = this.changeWeather.bind(this) // 这个changeWeather作为属性
+		}
+  	render() { // 这个地方注意事件的变化，React把所有的原生重写了一份
+  		return <h2 onClick={changeWeather}>今天天气很{this.state.isHot ? '炎热' : '凉爽'}</h2>
+  	}
+    changeWeather() { // 这个changeWeather在原型
+      console.log('标题被点击了')
+      // state不能直接修改，要使用setState，每次setState都会触发render重新调用
+      this.setState({isHot = !isHot})
+    }
+  }
+  ReactDOM.render(<Weather />, document.getElementById('test'))
+</script>
+```
+
+​	接下来看看简写方式
+
+```react
+<script type="text/babel">
+	class Weather extends React.Component {
+    // 直接在类中赋值
+    state = {
+    		isHot: false
+    }
+  	render() { // 这个地方注意事件的变化，React把所有的原生重写了一份
+  		return <h2 onClick={changeWeather}>今天天气很{this.state.isHot ? '炎热' : '凉爽'}</h2>
+  	}
+    // 自定义方法
+    changeWeather = () => { // 挂载一个箭头函数到实例上
+      console.log('标题被点击了')
+      // state不能直接修改，要使用setState，每次setState都会触发render重新调用
+      this.setState({isHot = !isHot})
+    }
+  }
+  ReactDOM.render(<Weather />, document.getElementById('test'))
+</script>
+```
+
+
+
+
+
+### 10.23
+
+**React**
+
+​	**props**
+
+​	在使用组件的时候使用html传参的方法，传入的键值对会自动进入props属性
+
+​	回顾一个浅拷贝对象的方法 `let person2 = {...person}` 没有实现迭代器的对象不能直接使用剩余运算符，但是套大括号可以
+
+​	在react和babel的加持下允许直接使用...展开对象
+
+​	如果要限制标签属性就必须引入prop-types.js文件，==props是只读的==
+
+```react
+const p = {name: 'jack', age: 20, gender: 'male'}
+ReactDOM.render(<Person name="mary" age={19} gender="female"/>) // 大括号的地方是为了把字符串换成number类型
+ReactDOM.render(<Person {...p}/>) // 这个地方的大括号仅仅是表示是js表达式
+
+// 为了防止使用者传递错误的props属性，可以在定义组件的时候做一些限制
+class Person extends React.Component {
+  render() {
+  	return (
+    	<ul>
+        <li>姓名：{name}</li>
+        <li>年龄：{sex}</li>
+        <li>性别：{age + 1}</li>
+    	</ul>
+    )
+  }
+  // 限制props的类型
+  Person.propTypes = {
+    name: PropTypes.string.isRequired,
+    age: PropTypes.number,
+    gender: PropTypes.string
+    // 如果是函数写 PropTypes.func
+  }
+	Person.defaultProps = {
+    age: 18,
+    gender: '未知性别'
+  }
+}
+```
+
+​	props的简写方式
+
+```react
+class Person extends React.Component{
+  // 直接使用静态属性，挂载到Person类
+  static propTypes = {
+    name: PropTypes.string.isRequired,
+    age: PropTypes.number,
+    gender: PropTypes.string
+    // 如果是函数写 PropTypes.func
+  }
+  static defaultProps = {
+    age: 18,
+    gender: '未知性别'
+  }
+  render() {
+  	return (
+    	<ul>
+        <li>姓名：{name}</li>
+        <li>年龄：{sex}</li>
+        <li>性别：{age + 1}</li>
+    	</ul>
+    )
+  }
+}
+```
+
+​	函数式组件使用props，但是老版的使用state和refs是不行的
+
+```react
+function Person(props) {
+	const {name} = props
+	return <li>姓名：{name}</li>
+}
+Person.propType = {...}
+Person.defaultProps = {...}
+```
+
+​	**构造器**
+
+​	React官方描述组件的构造器就是用来设定初始的state或者绑定事件处理函数，但是实际上通过类内直接赋值语句可以回避
+
+​	如果写构造器就必须`super()`，super里面写不写props取决于是否希望在构造器中通过this访问props (大部分情况实际上是不需要的)
+
+​	p27
+
+
+
+**综合设计会议室以及一些杂记**
+
+​	喜提重大问题，登录后通过eventBus传递id然后出现了数据修改但是视图一直不变的大问题
+
+​	定位是User.vue的mounted生命周期函数，明天再看这个
+
+​	vue2不能监视一个data里面定义的引用类型(对象或者数组)的增减属性
+
+​	关于vue2的数据劫持，使用`Object.defineProperty()`vue2会定义一个新对象，完全仿制原来的对象，然后每个属性都提供get和set函数，进而导致每次对象属性的读取和修改都会被监管，但是这个同样导致增删属性不会被察觉
+
+​	`Object.defineProperty()`这个代理的能力非常弱，只能支持get和set，不像vue3使用的proxy功能强大
+
+​	所以vue2中引用数据类型的增添需要使用`Vue.set()`或者`this.$set()`，数组不受此规矩的限制是因为修改原数组方法都被重写了
+
+
+
+**今天的算法题总结 783-二叉搜索树节点最小距离 111-二叉树的最小深度**
+
+​	先提个杂记，昨天看了一个闭包的视频，其实就是外层变量加上一个函数使用外层变量，实在是太常见
+
+​	对于递归函数的传参问题，除了我已经用了很长时间的包装类传参，实际上直接使用顶级层的闭包是更简单的
+
+​	对于二叉树这道题，首先选择中序遍历，保证最自然的顺序，每次存储上一个prev值，恰恰prev不是目测的线性(这里掉坑)
+
+​	找到一个好的BFS解决二叉树最小深度解法，这个题不适合全部遍历
+
+```js
+		// 使用bfs求二叉树的最小深度
+    if(!root) return 0
+    const q = [[root, 1]] // 右边数字1代表第一层级，后面的字母l则为结构出来的节点所在层级
+    while(q.length) {
+        const [n, l] = q.shift()
+        // 只在叶子节点处返回层级，即为最小层级，算法结束
+        if(!n.left && !n.right) {
+            return l
+        }
+        if(n.left) q.push([n.left, l+1])
+        if(n.right) q.push([n.right, l+1])
+    }
+```
+
+
+
+### 10.24
+
+**数据结构**
+
+​	深度优先搜索，由于递归函数本来就是栈调用，不需要手动实现一个栈
+
+​	**排序算法**
+
+​	冒泡排序 交换和比较都是 O(n^2^)
+
+```js
+function bubbleSort(arr) {
+  let length = arr.length
+  for (let j = 0; j < length - 1; j++) {
+    for (let i = 0; i < length - j; i++) {
+      if (arr[i] > arr[i + 1]) {
+        [arr[i], arr[i + 1]] = [arr[i + 1], arr[i]]
+      }
+    }
+  }
+}
+```
+
+​	选择排序 比较次数是 O(n^2^)，交换是O(n) 比冒泡排序有更好的效率
+
+```js
+function selectSort(arr) {
+  let length = arr.length
+  for (let j = 0; j < length - 1; j++) {
+    let min = j
+    for (let i = j + 1; i < length; i++) {
+      if (arr[min] > arr[i]) {
+        min = i
+      }
+    }
+    [arr[j], arr[min]] = [arr[min], arr[j]]
+  }
+}
+```
+
+​	插入排序 相对于选择排序比较的次数减半，在三种简单排序中有最好的效果
+
+```js
+function insertSort(arr) {
+  let length = arr.length
+  for (let i = 1; i < length; i++) {
+    let temp = arr[i]
+    let j = i
+    while (arr[j - 1] > temp && j > 0) {
+      [arr[j], arr[j - 1]] = [arr[j - 1], arr[j]]
+      j--
+    }
+    arr[j] = temp
+  }
+}
+```
+
+​	p145
+
+
+
+**今天的算法题总结 09剑指offer-两个栈实现队列**
+
+​	改天看这个题好解法
