@@ -1955,7 +1955,7 @@ jwt 类似于 cookie，生成加密的 token 字符串到发送给客户端而�
 jwt 字符串的三个组成部分 Header.Payload.Signature
 Payload 才是用户的真实信息，Header 和 Signature 涉及安全的部分
 jwt 字符串一般存储在浏览器的 localStorage 或者 sessionStorage，发送 jwt 时放在 http 请求头的 Authorization 字段，格式如下
-Authorization: Bearer <token>
+`Authorization: Bearer <token>`
 
 在 Express 中使用 jwt：
 1 npm 安装 jsonwebtoken 和 express-jwt
@@ -1974,7 +1974,7 @@ unless 方法可以通过正则表达式匹配哪些接口不需要访问权限
 
 api 项目：
 为了保证密码的安全性，实际使用中一般不把明文密码放入数据库中，而是把加密的密码放入数据库中
-使用 bcryptjs 可以对密码进行加密，加密后的密码不能逆向破解并且同一明文多次加密得到的结果也不同
+使用 bcrypt.js 可以对密码进行加密，加密后的密码不能逆向破解并且同一明文多次加密得到的结果也不同
 p80
 
 ### 9.18
@@ -5277,7 +5277,7 @@ const myData = 'Hello React'
 const VDOM = (
   // html元素引入js使用{}包起来
   // 引入样式class换成className
-  // 行内样式使用对象，写{{key: value}}不是插值表达式，外层表示是js，内层表示是对象，另外组合词汇改成小驼峰
+  // 行内样式使用对象，写{{key: value}}双花括号不是插值表达式，外层表示是js，内层表示是对象，另外组合词汇改成小驼峰
   // jsx要求根标签只能有一个，这点类似于vue的template
   // 标签必须带自结束，自闭合
   // 标签的首字母如果小写字母开头就自动转html元素如果，如果html没有这个标签就报错，如果是大写字母开头认为是组件
@@ -5594,3 +5594,552 @@ function insertSort(arr) {
 **今天的算法题总结 09剑指offer-两个栈实现队列**
 
 ​	改天看这个题好解法
+
+
+
+### 10.25
+
+**数据结构**
+
+​	**排序算法**
+
+​	希尔排序 侧重于分组，分组是按间隔分，组内有序化然后不断缩小分组直到分组为1排序结束
+
+​	希尔排序类似于插入排序的升级版，每个分组内执行的其实就是插入排序
+
+```js
+// 增量 gap 为 gap / 2 的情况
+function shellSort(arr) {
+  let length = arr.length
+  let gap = Math.floor(length / 2)
+  while (gap >= 1) {
+    for (let i = gap; i < length; i++) {
+      let temp = arr[i]
+      let j = i
+      while (arr[j - gap] > temp && j > gap - 1) {
+        arr[j] = arr[j - gap]
+        j -= gap
+      }
+      arr[j] = temp
+    }
+    gap = Math.floor(gap / 2)
+  }
+}
+```
+
+​	快速排序 普遍情况下比希尔排序有更好的效率，类似于冒泡排序的升级版，思维的重点是分而治之
+
+​	冒泡排序中需要经过很多次交换才能在一次循环中将最大值放到正确位置，快速排序在一次循环中就可以找到元素的正确位置
+
+​	p153
+
+**React**
+
+​	**refs和事件处理**
+
+​	ref类似于vue中的ref属性，要操作dom的时候使用，组件内的标签通过定义ref可以标识自己，组件中通过`this.refs.refName`获取
+
+```react
+// 字符串形式的ref，由于效率问题，已经不再被官方推荐
+class Demo extends React.Component {
+  showData = () => {
+    const { input1 } = this.refs
+    alert(input1.value)
+  }
+  showData2 = () => {
+    const { input2 } = this.refs
+    alert(input2.value)
+  }
+  render() {
+    return (
+      <div>
+        <input ref="input1" type="text" placeholder="点击按钮提示数据" />
+        <button onClick={this.showData}>点击我显示左侧数据</button>
+        <input ref="input2" type="text" placeholder="失去焦点提示数据" onBlur={this.showData2} />
+      </div>
+    )
+  }
+}
+ReactDOM.render(<Demo />, document.getElementById('test'))
+
+// 回调函数形式的ref (内联和类内)
+	// 类内的形式因为不需要反复调用效率更高，但是整体无所谓，内联更方便
+	saveInput2 = (currentNode) => {
+    this.input2 = currentNode
+  }
+  render() {
+    return (
+      <div>
+        {/*回调接受的参数就是当前DOM元素，使用的时候由于是直接挂载也不需要refs*/}
+        {/*如果是像下面写的内联函数样式，更新过程中回调被调用两次，第一次传参null以清除旧的ref*/}
+        <input ref={currentNode => this.input1 = currentNode} type="text" placeholder="点击按钮提示数据" />
+        <button onClick={this.showData}>点击我显示左侧数据</button>
+        <input ref={this.saveInput} type="text" placeholder="提示数据" onBlur={this.showData2} />
+      </div>
+    )
+  }
+
+// 使用React.createRef()，这个函数调用后返回一个容器，该容器可以存储被ref标记的节点
+class Demo extends React.Component {
+  // 先创建容器，注意每个容器只能存一个
+  myRef = React.createRef()
+  myRef2 = React.createRef()
+  showData = () => {
+    const input1 = this.myRef.current.value
+    alert(input1.value)
+  }
+  showData2 = () => {
+    const input2 = this.myRef2.current.value
+    alert(input2.value)
+  }
+  render() {
+    return (
+      <div>
+        <input ref={this.myRef} type="text" placeholder="点击按钮提示数据" />
+        <button onClick={this.showData}>点击我显示左侧数据</button>
+        <input ref={this.myRef2} type="text" placeholder="失去焦点提示数据" onBlur={this.showData2} />
+      </div>
+    )
+  }
+}
+```
+
+​	**事件**
+
+​	react中事件通过委托的方式处理，意味着会冒泡到组件最外层元素，然后使用event.target得到发生事件的DOM元素对象
+
+```react
+  // 直接使用e.target即可
+	showData2 = (event) => {
+    alert(event.target.value)
+  }
+  render() {
+    return (
+      <div>
+        <input ref={this.myRef} type="text" placeholder="点击按钮提示数据" />
+        <button onClick={this.showData}>点击我显示左侧数据</button>
+        <input type="text" placeholder="失去焦点提示数据" onBlur={this.showData2} />
+      </div>
+    )
+  }
+```
+
+​	**数据双向绑定** - 实现类似于v-model的功能，实现这个功能的组件称为受控组件
+
+```react
+class Login extends React.Component {
+  // 所谓受控组件主要是组件的状态动态维护到state里面，并且减少ref的使用
+  state = {
+    username: '',
+    password: ''
+  }
+  handleSubmit = (e) => {
+    e.preventDefault()
+    const { username, password } = this.state
+    alert(username, password)
+  }
+  saveUsername = (e) => {
+    this.setState({ username: e.target.value })
+  }
+  savePassword = (e) => {
+    this.setState({ password: e.target.password })
+  }
+  render() {
+    return (
+      <form action="" onSubmit={this.handleSubmit}>
+        用户名 <input onChange={this.saveUsername} type="text" />
+        密码 <input onChange={this.savePassword} type="password" />
+        <button>登录</button>
+      </form>
+    )
+  }
+}
+ReactDOM.render(<Login />, document.getElementById('test'))
+```
+
+​	p35
+
+
+
+**今天的算法题总结 27-移除元素 844-比较含退格的字符串**
+
+​	做数组，链表类型的题目要逐渐理解快慢指针的思想
+
+
+
+### 10.26
+
+**数据结构**
+
+​	**快速排序**
+
+​	要想快速排序简单可以先直接把结尾当成pivot
+
+​	下面这两种算法除了有上述的特点之外，不基于原数组不能满足部分要求，并且空间复杂度高
+
+```js
+// 这个结构的快速排序最好理解但是操作不基于原数组，效率并不高
+function quickSort(arr) {
+  if (arr.length <= 1) return arr
+  const midIndex = Math.floor(arr.length / 2)
+  // 从原数组删除中位数并保留结果
+  const middle = arr.splice(midIndex, 1)[0]
+  const leftArr = [], rightArr = []
+  for (let i = 0; i < arr.length; i++) {
+    const current = arr[i]
+    current > middle ? rightArr.push(current) : leftArr.push(current)
+  }
+  return quickSort(leftArr).concat(middle, quickSort(rightArr))
+}
+
+// 类似于上面的做法更简单的快速排序
+function quickSort(array) {
+  if(arr.length <= 1) return array
+  let pivot = array[array.length - 1]
+  let left = array.filter((v, i) => v <= pivot && i != array.length -1)
+  let right = array.filter(v => v > pivot)
+  return [...quickSort(left), pivot, ...quickSort(right)]
+}
+```
+
+​	理想的快速排序，这个算法的pivot依然是取最后
+
+```js
+function quickSort(arr) {
+  function quick(arr, left, right) {
+    if (right - left <= 1) return
+    let pivot = right
+    let i = left
+    let j = right - 1
+    while (i < j) {
+      while (arr[i] <= arr[pivot]) {
+        i++
+      }
+      while (arr[j] > arr[pivot] && i < j) {
+        j--
+      }
+      [arr[i], arr[j]] = [arr[j], arr[i]]
+    }
+    [arr[pivot], arr[i]] = [arr[i], arr[pivot]]
+    quick(arr, left, i - 1)
+    quick(arr, i + 1, right)
+  }
+  quick(arr, 0, arr.length - 1)
+}
+```
+
+
+
+**Vue3**
+
+​	**transition-group**
+
+​	渲染整个列表，使用transition-group组件，里面是v-for
+
+​	本身其他使用跟transition没什么区别，比如各种添加动画
+
+```vue
+<transition-group tag="section"> // 意味着外面还有一层section标签包起来
+	<div v-for="item in list" :key="item.id">{{item}}</div>
+</transition-group>
+```
+
+​	**依赖注入provide/inject**
+
+​	提供了简便的从父组件向子组件传值的方法
+
+```js
+// 父组件
+import {provide, ref} from 'vue'
+const colorValue = ref('black')
+provide('color', colorValue)
+
+// 子组件
+import {inject} from 'vue'
+const color = inject('color')
+```
+
+​	p32
+
+
+
+**今天的算法题总结 977-有序数组的平方 209-长度最小的子数组**
+
+​	这两道题都是典型的双指针法，第二道题是滑动窗口
+
+
+
+### 10.27
+
+**Vue3**
+
+​	**使用Mitt实现类似于Vue2中eventBus类似的效果**
+
+​	`npm i mitt`
+
+```js
+// main.js
+import mitt from 'mitt'
+const mit = mitt()
+app.config.globalProperties.$Bus = mit
+
+// 发送组件
+import {getCurrentInstance} from 'vue'
+const instance = getCurrentInstance()、
+// 其他地方调用这个emit即可
+const emit = (e) => {
+	instance.proxy.$Bus.emit('自定义事件', e)
+}
+
+// 接收组件
+import {getCurrentInstance} from 'vue'
+const instance = getCurrentInstance()
+instance.proxy.$Bus.on('自定义事件', (e) => {
+
+})
+```
+
+​	p34
+
+
+
+**React**
+
+​	**高阶函数以及函数柯里化**
+
+```react
+class Login extends React.Component {
+  // 所谓受控组件主要是组件的状态动态维护到state里面，并且减少ref的使用
+  state = {
+    username: '',
+    password: ''
+  }
+  handleSubmit = (e) => {
+    e.preventDefault()
+    const { username, password } = this.state
+    alert(username, password)
+  }
+  // 这两个save函数有大量的重复
+  /* saveUsername = (e) => {
+    this.setState({ username: e.target.value })
+  }
+  savePassword = (e) => {
+    this.setState({ password: e.target.password })
+  } */
+  
+  // 高阶函数，所谓函数柯里化就是函数的返回值还是函数
+  saveFormData = (dataType) => {
+		return (e) => {
+      this.setState({
+        [dataType]: e.target.value
+      })
+    }
+  }
+  
+  render() {
+    // 各种on事件后跟的一定是一个js函数，不管是直接写函数还是返回值是一个函数，react会自动调用这个函数
+    return (
+      <form action="" onSubmit={this.handleSubmit}>
+        用户名 <input onChange={this.saveFormData('username')} type="text" />
+        密码 <input onChange={this.saveFormData('password')} type="password" />
+        <button>登录</button>
+      </form>
+    )
+  }
+}
+ReactDOM.render(<Login />, document.getElementById('test'))
+```
+
+​	实际上也可以不使用函数的柯里化，但是不能类似于vue获取到`$event`
+
+```react
+  saveFormData = (str, e) => {
+		this.setState({
+      str: e.target.value
+    })
+  }
+  
+  render() {
+    // 各种on事件后跟的一定是一个js函数，不管是直接写函数还是返回值是一个函数，react会自动调用这个函数
+    return (
+      <form action="" onSubmit={this.handleSubmit}>
+        用户名 <input onChange={(event) => {this.saveFormData('username', event)}} type="text" />
+        密码 <input onChange={(event) => {this.saveFormData('password', event)}} type="password" />
+        <button>登录</button>
+      </form>
+    )
+  }
+```
+
+​	**组件的生命周期**
+
+```react
+// 删除组件的方法
+ReactDOM.unmountComponentAtNode(document.getElementById('test'))
+
+// 组件刚挂载的生命周期方法，相当于onMounted，写在和render同级的位置
+componentDidMount() {
+	...
+}
+
+// 组件卸载前，相当于beforeDestroy
+componentWillUnmount()
+```
+
+​	p38
+
+
+
+**关于Vue3响应式reactive不能解构赋值**
+
+​	这个问题属于Proxy而不是vue，并且实在解构赋值的情况下如果内层又是一个对象依然可以保留响应式，但是如果被解构的已经是一个基础数据类型，解构的过程中就直接拿到了这个值(值传递)，这个值的获取已经跟对象底层的getter和setter没有关系，所以响应式会丢失，反观对象由于reactive会连续包装下去，对象依然在proxy里面，服从getter和setter
+
+
+
+**今天的算法题总结 904-水果成篮**
+
+​	大概理解了滑动窗口的概念
+
+
+
+### 10.28
+
+**React**
+
+​	**旧版生命周期**
+
+​	初次挂载： 构造器 -> componentWillMount -> render -> componentDidMount -> componentWillUnmount (如果有卸载组件这个操作)
+
+​	以下三个是更新操作
+
+​	setState：shouldComponentUpdate(默认返回值true) -> componentWillUpdate -> render -> componentDidUpdate
+
+​	forceUpdate：componentWillUpdate -> render -> componentDidUpdate -> componentWillUnmount
+
+​	父组件使用props：componentWillReceiveProps->shouldComponentUpdate->componentUpdate->render->componentDidUpdate
+
+​	旧版的这个componentWillReceiveProps有一些坑，第一次传递的props不算，不会调用这个钩子函数，这个函数可以接受props参数
+
+​	componentDidUpdate(preProps, preState)里面可以接受这两个参数，都是更新之前的数据
+
+​	常见的钩子函数：
+
+​		render：所有的渲染都要过一遍，重要性不言而喻
+
+​		componentDidMount 开启定时器，发送网络请求，订阅消息
+
+​		componentWillUnmount 关闭定时器，取消订阅消息
+
+​	**新版生命周期**
+
+​	废弃或者不再推荐使用
+
+​		componentWillMount，componentWillUpdate 和 componentWillReceiveProps被改名，并且不再被推荐使用
+
+​		如果一定要使用的话前面添加`UNSAFE_`前缀比如`UNSAFE_componentWillMount`
+
+​		在异步渲染中React官方认为这三个钩子函数会有问题所以准备取消这三个生命周期
+
+​	关于新增的两个
+
+​		getDerivedStateFromProps: 写成静态方法，可以接收参数props和state，并且要求返回状态对象(state)或者null
+
+​			上述方法的意义上是从Props得到派生的状态state，调用这个方法可以让state的值取决于props，使用极少
+
+​			这个生命周期的位置对于初次挂载在constructor之后，三种更新时都第一个调用
+
+​		getSnapshotBeforeUpdate(preProps, preState):
+
+​			必须返回快照值或者null，这个钩子函数的功能是可以在组件更改前在DOM捕获一些信息(比如滚动的位置)，这个生命周期的任何返回值都会作为参数送给componentDidUpdate()
+
+​			如果写了这个钩子函数，对应的componentDidUpdate(preProps, preState, snapshotValue)
+
+​			这个生命周期的位置在更新时render->getSnapshotBeforeUpdate->真实更新DOM->componentDidUpdate
+
+​	**DOM的diff算法**
+
+​		这个解释了为什么react和vue的循环中key必须被绑定并且最好不要直接就是index
+
+​	**React脚手架**
+
+```shell
+npm i -g create-react-app -g
+create-react-app 项目名
+```
+
+​	p50
+
+
+
+**今天的算法题总结 24-两两交换链表的节点 19-删除链表中的倒数第K个节点**
+
+​	都是双指针法，顺便做链表题可以使用dummyHead虚链表头
+
+
+
+### 10.29
+
+**React**
+
+​	**脚手架**
+
+​	使用脚手架创建出的页面的index.html
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <!-- %PUBLIC_URL就表示public目录 -->
+  <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
+  <!-- 开启理想视口，用于移动端的适配 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- 用于配置浏览器页签 + 地址栏的颜色，仅限于部分安卓手机 -->
+  <meta name="theme-color" content="#000000" />
+  <meta name="description" content="Web site created using create-react-app" />
+  <!-- 指定网页添加到手机主屏幕的图标 -->
+  <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
+  <!-- 应用加壳，可以通过这个技术直接转化为客户端应用 -->
+  <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+
+  <title>React App</title>
+</head>
+
+<body>
+  <noscript>You need to enable JavaScript to run this app.</noscript>
+  <div id="root"></div>
+
+</body>
+
+</html>
+```
+
+​	**实现样式的模块化**
+
+```jsx
+// 首先css文件改为.module.css比如Hello.module.css
+// 案例中css就是 .title {color: blue} 等等样式
+
+// 使用变量接收css文件
+import Hello from './Hello.module.css'
+export default class Hello extends React.Component {
+	render() {
+    {/*className更换格式*/}
+		return <h2 className={Hello.title}>Hello React</h2>
+	}
+}
+```
+
+​	**React18 渲染的变化**
+
+```react
+// 17及以下版本
+import ReactDOM from 'react-dom'
+ReactDOM.render(组件, 挂载位置)
+// 18及以上
+import ReactDOM from 'react-dom/client'
+const root = ReactDOM.createRoot(挂载位置)
+root.render(组件)
+```
+
