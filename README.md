@@ -6143,3 +6143,49 @@ const root = ReactDOM.createRoot(挂载位置)
 root.render(组件)
 ```
 
+​	p56
+
+### 10.30
+
+**React**
+
+​	**子组件向父组件传递值**
+
+​	不同于vue的触发事件，react中可以使用子元素调用父元素回调
+
+```react
+// 父组件
+  handleAdd = (newName) => {
+    const { todos } = this.state
+    const newTodos = [...todos, { id: nanoid(), name: newName, done: false }]
+    console.log(newTodos)
+    this.setState({ todos: newTodos })
+  }
+
+// 子组件
+  handleKeyUp = (e) => {
+    const { keyCode, target } = e
+    if (target.value.trim() === '') {
+      return alert('输入不能为空')
+    }
+    if (keyCode === 13) {
+      this.props.handleAdd(target.value) // 调用父组件的函数
+      target.value = ''
+    }
+  }
+
+  render() {
+    return (
+      <div className="todo-header">
+        <input onKeyUp={this.handleKeyUp} type="text" placeholder="请输入你的任务名称，按回车键确认" />
+      </div>
+    )
+  }
+```
+
+
+
+​	p61
+
+**今天的算法题总结 LC-242-有效的字母异位词 LC-202-快乐数**
+
