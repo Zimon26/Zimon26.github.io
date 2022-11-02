@@ -6145,6 +6145,8 @@ root.render(组件)
 
 ​	p56
 
+
+
 ### 10.30
 
 **React**
@@ -6183,9 +6185,352 @@ root.render(组件)
   }
 ```
 
-
-
 ​	p61
 
-**今天的算法题总结 LC-242-有效的字母异位词 LC-202-快乐数**
 
+
+**今天的算法题总结 242-有效的字母异位词 202-快乐数**
+
+​	这里的哈希表用的很简单就是单纯用空间换取时间，并没有哈希化
+
+
+
+### 10.31
+
+**React**
+
+​	**使用脚手架配置react前端代理**
+
+​	不同于后端代理，前端代理使用一个同源的微型服务器，由于这个代理没有ajax引擎，从而绕开了同源策略，可以跨域
+
+```json
+// package.json中添加
+"proxy": "http://localhost:端口号" // 这个地址是代理的目标，也就是真实服务器地址
+```
+
+```js
+// react脚手架默认运行在3000端口，则给3000端口发送数据
+// 这种情况下如果请求的是index.html这种public目录下有的就会直接被返回
+axios.get('http://localhost:3000/students')
+```
+
+​	但是有些情况下，同一个页面可能请求不同的服务器地址，所以上述全局代理方式不够全面
+
+​	**react脚手架配置代理总结 直接复制没有整理格式**
+
+方法一
+
+> 在package.json中追加如下配置
+
+```json
+"proxy":"http://localhost:5000"
+```
+
+说明：
+
+1. 优点：配置简单，前端请求资源时可以不加任何前缀。
+2. 缺点：不能配置多个代理。
+3. 工作方式：上述方式配置代理，当请求了3000不存在的资源时，那么该请求会转发给5000 （优先匹配前端资源）
+
+
+
+方法二
+
+1. 第一步：创建代理配置文件
+
+    ```
+    在src下创建配置文件：src/setupProxy.js
+    ```
+
+2. 编写setupProxy.js配置具体代理规则 这个文件必须使用cjs规范：
+
+    ```js
+    const proxy = require('http-proxy-middleware')
+    
+    module.exports = function(app) {
+      app.use(
+        proxy('/api1', {  //api1是需要转发的请求(所有带有/api1前缀的请求都会转发给5000)
+          target: 'http://localhost:5000', //配置转发目标地址(能返回数据的服务器地址)
+          changeOrigin: true, //控制服务器接收到的请求头中host字段的值
+          /*
+          	changeOrigin设置为true时，服务器收到的请求头中的host为：localhost:5000
+          	changeOrigin设置为false时，服务器收到的请求头中的host为：localhost:3000
+          	changeOrigin默认值为false，但我们一般将changeOrigin值设为true
+          */
+          pathRewrite: {'^/api1': ''} //去除请求前缀，保证交给后台服务器的是正常请求地址(必须配置)
+        }),
+        proxy('/api2', { 
+          target: 'http://localhost:5001',
+          changeOrigin: true,
+          pathRewrite: {'^/api2': ''}
+        })
+      )
+    }
+    ```
+
+说明：
+
+1. 优点：可以配置多个代理，可以灵活的控制请求是否走代理。
+2. 缺点：配置繁琐，前端请求资源时必须加前缀。
+
+​	p69
+
+
+
+**今天的算法题总结 454-四数之和II 383-赎金信**
+
+​	两数之和重新看了一下，使用哈希表的方法，其实也就是结果提前存起来
+
+​	之所以感觉没有使用哈希表而只是把结果存起来，是因为map和set本身底层已经调用了哈希函数或者红黑树等结构
+
+​	另外当元素数量有限且有规律的时候可以优先使用数组而不是map，这样速度更快
+
+
+
+### 11.1
+
+**React**
+
+​	**任意组件之间的数据交互 - 消息订阅与发布机制**
+
+​	先安装`npm i pubsub-js`
+
+```js
+import PubSub from 'pubsub-js'
+
+// 消息发布方
+PubSub.publish('消息名', data)
+
+// 消息订阅接收方，其中回调的msg也是消息名，使用很少
+let token = PubSub.subscribe('消息名', (msg, data) => {...})
+// 取消订阅
+PubSub.unsubscribe(token)
+```
+
+​	**原生的网络请求库fetch - 由于老版浏览器的兼容性问题使用并不是很多**
+
+​	fetch同样也是Promise风格，替代最原生的xhr
+
+​	fetch讲究关注分离，所以第一次调用promise返回的状态是是否响应成功(包括服务器的404等错误都算成功)而不是返回数据
+
+​	第一次的resolve结果要使用其原型自带的`json()`方法拿到第二个promise，然后用await或者then解包就行
+
+```js
+fetch(`https://api.github.com/search/users?q=${keyWord}`).then(
+  response => {
+    console.log('服务器联系成功')
+    return response.json()
+  }
+  // err => {
+  //   console.log('联系服务器失败了', err.message)
+  //   return new Promise(() => {})
+  // }
+).then(
+  response => console.log(response)
+  // err => console.log(err.message)
+).catch(err => console.log(err.message))
+
+// 更加精简的写法
+try {
+  const response = await fetch(`https://api.github.com/search/users?q=${keyWord}`)
+  const data = await response.json()
+} catch(err) {
+  console.log('请求出错', err.message)
+}
+```
+
+==Promise和async/await==
+
+​	之前的理解是正确的，如果不想管reject的情况完全可以直接使用await，但是如果想处理，就使用try/catch包起来即可
+
+​	**React前端路由**
+
+​	前端路由依靠浏览器本身BOM的history属性，history有两种版本，h5版本直接操作history或者哈希history，没有使用h5的history
+
+​	哈希这种模式兼容性好，使用的就是类似于之前a标签上面的锚点属性
+
+​	p77
+
+**今天的算法题总结 15-三数之和 541-反转字符串II 05剑指offer-替换空格 151-替换字符串中的单词**
+
+​	实际上三数之和使用的还是双指针法，替换字符串中的单词这道题的解法还不够理想
+
+
+
+### 11.2
+
+**React**
+
+​	**React前端路由**
+
+​	使用的库是react-router-dom
+
+​	最基本的路由使用
+
+```react
+// index.js 使用BrowserRouter或者HashRouter
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
+import App from './App';
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(
+  <React.StrictMode>
+    {/*BrowserRouter和HashRouter是路由管理*/}
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
+  </React.StrictMode>
+);
+
+//App.jsx 使用Link Route
+import { Component } from 'react';
+import { Link, Route } from 'react-router-dom';
+import About from './components/about';
+import Home from './components/home';
+
+
+export default class App extends Component {
+  render() {
+    return (
+      <div>
+        <div className="row">
+          <div className="col-xs-offset-2 col-xs-8">
+            <div className="page-header"><h2>React Router Demo</h2></div>
+          </div>
+        </div>
+        <div className="row">
+          <div className="col-xs-2 col-xs-offset-2">
+            <div className="list-group">
+              {/*Link是路由链接*/}
+              <Link className='list-group-item' to="/home">Home</Link>
+              <Link className='list-group-item' to="/about">About</Link>
+            </div>
+          </div>
+          <div className="col-xs-6">
+            <div className="panel">
+              <div className="panel-body">
+                {/*Route是路由组件*/}
+                <Route path="/home" component={Home}></Route>
+                <Route path="/about" component={About}></Route>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+}
+```
+
+​	使用Route的路由组件会自带三个重要的props属性history location match
+
+​	如果要选中路由的标签高亮可以使用NavLink，自动给选中的添加active类名，可以配置activeClassName修改自动添加的类名
+
+​	实际使用中由于NavLink可能很多并且每个都需要写重复的activeClassName等属性，所以可以封装NavLink
+
+```react
+// NavLink/index.jsx
+import { Component } from 'react'
+import { NavLink } from 'react-router-dom'
+
+export default class MyNavLink extends Component {
+  render() {
+    return (
+      // 这个地方已经传递了包括children在内的很多属性
+      <NavLink {...this.props}></NavLink>
+    )
+  }
+}
+```
+
+​	**接收标签体内容，类似于插槽**
+
+​		标签体内容就存放在props里面的children属性，所以说接收和传递标签体属性也可以使用children属性
+
+```react
+<NavLink className='list-group-item' to="/about" children="about"></NavLink>
+```
+
+​	**switch**
+
+​		使用switch组件把Route组件包起来可以实现更好的Route效率，找到对应的就会停止不继续往下找
+
+```react
+<switch>
+	<Route path="/home" component={Home}></Route>
+  <Route path="/about" component={About}></Route>
+</switch>
+```
+
+​	给Route添加`exact={true}`可以开启路由的精准匹配，默认是模糊匹配，但是一般情况下无问题不开启严格匹配，有时干预二级匹配
+
+​	**Redirect组件**
+
+​	一般位置写在最下面，所有路由都匹配不上就去redirect
+
+```react
+<switch>
+	<Route path="/home" component={Home}></Route>
+  <Route path="/about" component={About}></Route>
+  <Redirect to="/home"></Redirect>
+</switch>
+```
+
+​	**嵌套 / 多级路由**
+
+​	整体而言相对比vue写的routes数组更加人性化，保证安全一般不写精确匹配exact
+
+```react
+// 上一个案例的home组件
+import { Component } from 'react'
+import { Route, Switch } from 'react-router-dom'
+import MyNavLink from '../MyNavLink'
+import Message from './Message'
+import News from './News'
+
+export default class home extends Component {
+  render() {
+    return (
+      <div>
+        <h3>home</h3>
+        <div>
+          <ul className="nav nav-tabs">
+            <li>
+              {/* <a className="list-group-item" href="./home-news.html">News</a> */}
+              <MyNavLink to="/home/news">News</MyNavLink>
+            </li>
+            <li>
+              {/* <a className="list-group-item" href="./home-message.html">Message</a> */}
+              <MyNavLink to="/home/message">Message</MyNavLink>
+            </li>
+          </ul>
+          <Switch>
+            <Route path="/home/news" component={News}></Route>
+            <Route path="/home/message" component={Message}></Route>
+          </Switch>
+        </div>
+      </div>
+    )
+  }
+}
+```
+
+​	**向路由组件传递参数**
+
+​	普通组件可以直接在标签里面使用props传递参数，但是路由组件都是包在Route里面不能直接传递参数
+
+```react
+// params参数模式
+<Link to={`/home/message/detail/${item.id}/${item.title}`}>{item.title}</Link>
+<Route path="/home/message/detail/:id/:title" component={Detail}></Route>
+// 随后Detail组件可以在props里面接收到参数
+const { id, title } = this.props.match.params
+```
+
+​	p87
+
+**今天的算法题总结 232-用栈实现队列 225-用队列实现栈**
+
+​	栈实现队列两个一个管进一个管出，队列实现栈出栈的时候两个队列倒腾一下(或者可以直接一个队列实现，类似于环形)
