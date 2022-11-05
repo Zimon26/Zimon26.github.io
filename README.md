@@ -6517,7 +6517,7 @@ export default class home extends Component {
 }
 ```
 
-​	**向路由组件传递参数**
+​	**向路由组件传递参数 使用params参数**
 
 ​	普通组件可以直接在标签里面使用props传递参数，但是路由组件都是包在Route里面不能直接传递参数
 
@@ -6534,3 +6534,239 @@ const { id, title } = this.props.match.params
 **今天的算法题总结 232-用栈实现队列 225-用队列实现栈**
 
 ​	栈实现队列两个一个管进一个管出，队列实现栈出栈的时候两个队列倒腾一下(或者可以直接一个队列实现，类似于环形)
+
+
+
+### 11.4
+
+**React**
+
+​	**向路由组件传递参数**
+
+​	**search参数**
+
+```react
+// 声明参数
+<Link to={`/home/message/detail/?id=${item.id}&title=${item.title}`}>{item.title}</Link>
+// 不需要声明接受的环节，直接写Route
+<Route path="/home/message/detail" component={Detail}></Route>
+// 包含?的query字符串会直接传递到this.props.location.search需要手动解开
+this.props.location.search === '?id=1&title=消息1'
+// 引入qs库自动解包，qs.stringify(obj)转为urlencoded格式，qs.parse(str)转为对象格式
+import qs from 'qs'
+const str = this.props.location.search
+const obj = qs.parse(str) // 这一步之前手动把问号去掉
+```
+
+​	**state参数** 这个state是路由组件身上自带的不是组件三大特性
+
+​	state传递参数地址栏不会展示，参数依赖于BOM本身的history，刷新可以保留，但清除缓存后会消失，默认state是undefined
+
+​	==使用HashRouter的话刷新会导致路由的state参数丢失==
+
+```react
+// 声明参数
+<Link to={{pathname: '/home/message/detail', state: {id: item.id, title: item.title}}}>{item.title}</Link>
+// 不需要声明接受的环节，直接写Route
+<Route path="/home/message/detail" component={Detail}></Route>
+// 接受参数
+this.props.location.state === {id: 1, title: '消息1'} || {}
+const {id, title} = this.props.location.state
+```
+
+​	**push和replace**
+
+​	可以给Link和NavLink标签开启replace模式，这样历史记录无法回退，默认是push
+
+```react
+<MyNavLink replace to="/home/message">Message</MyNavLink>
+```
+
+​	p91
+
+
+
+### 11.5
+
+**React**
+
+​	**编程式路由导航**
+
+​	可以解决有时候Link标签没有那么适用的情况，比如自动路由跳转
+
+```react
+// 本质上是使用this.props.histroy上面的五个方法
+// 路由跳转的两个方法 push 和 replace
+replaceShow = (id, title) => {
+	this.props.history.replace(`/home/message/detail/${id}/${title}`)
+}
+
+searchShow = (id, title) => {
+	this.props.history.push(`/home/message/detail?id=${id}&title=${title}`)
+}
+
+stateShow = (id, title) => {
+	this.props.history.replace(`/home/message/detail`, {id, title})
+}
+// 控制历史记录回退和前进 go(n) goForward() goBack()
+```
+
+​	withRouter，让非路由组件也能使用编程式路由导航
+
+```react
+// 在非路由组件中
+import {withRouter} from 'react-router-dom'
+class Header extends Component {...}
+export default withRouter(Header)
+// withRouter加工后一般组件也会添加路由组件的props
+```
+
+​	**使用antd ui库**	
+
+​		`npm i antd` 下载antd ui库
+
+```react 
+import {Button} from 'antd' // 按需引入组件
+import 'antd/dist/antd.css' // 引入样式
+
+export default class MyButton extends Component {
+	render() {
+		return (
+    	<Button type="primarym"></Button> // 使用antd的组件
+    )
+  }
+}
+```
+
+​		按需引入antd的样式
+
+​		首先需要对脚手架的配置文件做修改，让webpack的配置文件暴露出来 `npm eject` 剩下的步骤很复杂直接看官网
+
+​	**Redux**
+
+​		Redux是专门做状态管理的js库，对于三大框架都可以使用但是一般与React配套
+
+​		**Redux的核心三个元素：**
+
+ 	1. Action Creators 创建行为对象`{type: 'add_student', data: 1}`然后给Store
+ 	2. Store 接受行为对象，使用dispatch分发给对应的Reducer `(previousState, action)`，Reducer处理后组件通过`getState()`更新状态
+ 	3. Reducer 处理行为，接受参数是旧的state以及action，处理完毕之后返回给Store
+
+​		<u>注意Redux仅仅维护数据，修改后需要手动更新页面视图</u>
+
+​		`this.setState({})`就可以重新调用render函数，render不要手动调用
+
+​		**跳过Action Creators的最简单例子**
+
+```react
+// index.js
+
+import React from "react";
+import ReactDOM from 'react-dom/client';
+import App from "./App";
+import store from "./redux/store";
+
+store.subscribe(() => {
+  const root = ReactDOM.createRoot(document.getElementById('root'))
+  root.render(
+    <React.StrictMode>
+      <App />
+    </React.StrictMode>
+  )
+})
+
+// store.js
+
+import { legacy_createStore as createStore } from "redux";
+import countReducer from './count_reducer';
+// 这个文件就是用于暴露store对象，整个应用只有一个store
+export default createStore(countReducer)
+
+// count_ reducer.js
+
+// 创建一个为Count组件服务的Reducer，Reducer的本质就是一个函数
+export default function countReducer(preState, action) {
+  if (preState === undefined) preState = 0
+  const { type, data } = action
+  switch (type) {
+    case 'increment':
+      return preState + data
+    case 'decrement':
+      return preState - data
+    // default这种情况对应于初始化
+    default:
+      return preState
+  }
+}
+
+// Count的index.jsx
+
+import { Component } from 'react'
+// 引入store
+import store from '../../redux/store'
+
+export default class Count extends Component {
+  state = {
+    count: 0
+  }
+
+  // componentDidMount = () => {
+  //   // 检测redux状态的变化，变化就调用render
+  //   // subscribe函数会监听任何redux中的数据变化，只要变化就调用回调
+  //   store.subscribe(() => {
+  //     this.setState({})
+  //   })
+  // }
+
+  increment = () => {
+    const { value } = this.selectNumber
+    // const { count } = this.state
+    //   this.setState({ count: parseInt(value) + parseInt(count) })
+    store.dispatch({ type: 'increment', data: parseInt(value) })
+  }
+
+  decrement = () => {
+    const { value } = this.selectNumber
+    // const { count } = this.state
+    // this.setState({ count: parseInt(count) - parseInt(value) })
+    store.dispatch({ type: 'decrement', data: -parseInt(value) })
+  }
+
+  incrementIfOdd = () => {
+    const { value } = this.selectNumber
+    // const { count } = this.state
+    const count = store.getState()
+    if (count % 2 !== 0) {
+      // this.setState({ count: parseInt(value) + parseInt(count) })
+      store.dispatch({ type: '', data: parseInt(value) })
+    }
+  }
+
+  incrementAsync = () => {
+    const { value } = this.selectNumber
+    // const { count } = this.state
+    setTimeout(() => {
+      store.dispatch({ type: '', data: parseInt(value) })
+    }, 500)
+  }
+
+  render() {
+    return (
+      <div>
+        <h1>当前求和为 {store.getState()}</h1>
+        <select ref={c => this.selectNumber = c}>
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+        </select>&nbsp;
+        <button onClick={this.increment}> + </button>&nbsp;
+        <button onClick={this.decrement}> - </button>&nbsp;
+        <button onClick={this.incrementIfOdd}>当前求和为奇数 + 1</button>&nbsp;
+        <button onClick={this.incrementAsync}>异步 + 1</button>&nbsp;
+      </div>
+    )
+  }
+}
+```
+
+​	p101
