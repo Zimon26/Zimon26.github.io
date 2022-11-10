@@ -6711,7 +6711,7 @@ export default class Count extends Component {
   }
 
   // componentDidMount = () => {
-  //   // 检测redux状态的变化，变化就调用render
+  //   // 单个组件单位检测redux状态的变化，变化就调用render
   //   // subscribe函数会监听任何redux中的数据变化，只要变化就调用回调
   //   store.subscribe(() => {
   //     this.setState({})
@@ -6721,7 +6721,7 @@ export default class Count extends Component {
   increment = () => {
     const { value } = this.selectNumber
     // const { count } = this.state
-    //   this.setState({ count: parseInt(value) + parseInt(count) })
+    // this.setState({ count: parseInt(value) + parseInt(count) })
     store.dispatch({ type: 'increment', data: parseInt(value) })
   }
 
@@ -6738,7 +6738,7 @@ export default class Count extends Component {
     const count = store.getState()
     if (count % 2 !== 0) {
       // this.setState({ count: parseInt(value) + parseInt(count) })
-      store.dispatch({ type: '', data: parseInt(value) })
+      store.dispatch({ type: 'increment', data: parseInt(value) })
     }
   }
 
@@ -6770,3 +6770,333 @@ export default class Count extends Component {
 ```
 
 ​	p101
+
+
+
+### 11.6
+
+**React**
+
+​	**Redux**
+
+​		更加完整的Redux示例 增添了 constant.js 和 count_action.js
+
+```react
+// count_action.js
+// 专门用于为count组件生成action
+import { DECREMENT, INCREMENT } from "./constant"
+
+export const createIncrementAction = (data) => ({ type: INCREMENT, data })
+export const createDecrementAction = (data) => ({ type: DECREMENT, data })
+
+// constant.js
+// 定义action对象中type类型的常量值
+export const INCREMENT = 'increment'
+export const DECREMENT = 'decrement'
+
+// count_reducer.js
+// 创建一个为Count组件服务的Reducer，Reducer的本质就是一个函数
+import { DECREMENT, INCREMENT } from "./constant"
+
+export default function countReducer(preState, action) {
+  if (preState === undefined) preState = 0
+  const { type, data } = action
+  switch (type) {
+    case INCREMENT:
+      return preState + data
+    case DECREMENT:
+      return preState - data
+    // default这种情况对应于初始化
+    default:
+      return preState
+  }
+}
+
+// count的index.jsx的修改部分
+	increment = () => {
+    const { value } = this.selectNumber
+    // const { count } = this.state
+    //   this.setState({ count: parseInt(value) + parseInt(count) })
+    store.dispatch(createIncrementAction(parseInt(value)))
+  }
+
+  decrement = () => {
+    const { value } = this.selectNumber
+    // const { count } = this.state
+    // this.setState({ count: parseInt(count) - parseInt(value) })
+    store.dispatch(createDecrementAction(parseInt(value)))
+  }
+
+  incrementIfOdd = () => {
+    const { value } = this.selectNumber
+    // const { count } = this.state
+    const count = parseInt(store.getState())
+    if (count % 2 !== 0) {
+      // this.setState({ count: parseInt(value) + parseInt(count) })
+      store.dispatch(createIncrementAction(parseInt(value)))
+    }
+  }
+
+  incrementAsync = () => {
+    const { value } = this.selectNumber
+    // const { count } = this.state
+    setTimeout(() => {
+      store.dispatch(createIncrementAction(parseInt(value)))
+    }, 500)
+  }
+```
+
+​		**异步Redux**
+
+​		action不仅可以是对象，也可以是函数，对象类型的是同步action，函数类型的是异步action
+
+​		异步action首先要`npm i redux-thunk`下载匹配的中间件，异步action的配置相对复杂，也可以组件内部直接异步逻辑
+
+```react
+// Count的index.js
+	incrementAsync = () => {
+    const { value } = this.selectNumber
+    // const { count } = this.state
+    // setTimeout(() => {
+    //   store.dispatch(createIncrementAction(parseInt(value)))
+    // }, 500)
+    store.dispatch(createIncrementAsyncAction(parseInt(value), 500))
+  }
+
+// store.js
+import { applyMiddleware, legacy_createStore as createStore } from "redux";
+import thunk from 'redux-thunk';
+import countReducer from './count_reducer';
+// 这个文件就是用于暴露store对象，整个应用只有一个store
+export default createStore(countReducer, applyMiddleware(thunk))
+
+// count_action.js
+// 专门用于为count组件生成action
+import { DECREMENT, INCREMENT } from "./constant"
+
+export const createIncrementAction = (data) => ({ type: INCREMENT, data })
+export const createDecrementAction = (data) => ({ type: DECREMENT, data })
+export const createIncrementAsyncAction = (data, ms) => {
+  return (dispatch) => {
+    setTimeout(() => {
+      dispatch(createIncrementAction(data))
+    }, ms)
+  }
+}
+```
+
+​	**react-redux**
+
+​		react-redux是Facebook给react专门定做的，并不是直接用于替换redux而是提供了一种链接
+
+​		react-redux的核心概念是容器组件和UI组件，只有容器组件和redux通信，UI组件通过props和容器组件通信
+
+​	p105
+
+
+
+11.7
+
+**React**
+
+​	**react-redux**
+
+​		react-redux成功打散了react和redux，这两个通过中间人容器组件沟通，降低耦合性
+
+​		react-redux的测试案例并没有跑通
+
+​	p108
+
+
+
+**今天的算法题总结 1047-删除字符串中的所有相邻重复项 150-逆波兰表达式求值**
+
+​	检讨这三天没有做算法题，今天可以考虑多看几道
+
+​	239-移动窗口的最大值有些情况没考虑到明天做
+
+
+
+### 11.8
+
+感觉昨天是很失败的一天，redux还是有一定的使用难度，redux部分先放一下，继续把react先看完
+
+**React**
+
+​	**React补充**
+
+​		**setState**
+
+​		setState是==异步==的操作，可以传入第二个参数是回调函数，在状态更新完毕且render也完毕后调用
+
+​		另外setState(updater, callback)updater是一个函数，参数有state和props
+
+​		其实本身对象式就是函数式的语法糖，如果想获取完更新的数据使用callback
+
+```js
+this.setState((state, props) => {
+	// 比较适合更新
+	return {count: state.count + 1}
+}, callback)
+```
+
+​	p117
+
+**今天的算法题总结 回溯专题 77-组合**
+
+​	可能是对回溯不是非常懂，我感觉回溯更像是树形分层递归，可以画图理解
+
+
+
+**11.9**
+
+**React**
+
+​	**React补充**
+
+​		**lazyLoad 懒加载**
+
+​		主要是处理路由组件，路由组件一般在没有点击的时候就已经被引入
+
+```react
+// index.jsx
+import React, {Component, lazy, Suspense} from 'react'
+// 不再写传统的引入路由组件的方式，更换为使用lazy函数的方式
+const Home = lazy(() => import('./Home'))
+const About = lazy(() => import('./About'))
+
+// 在注册路由的地方用Suspense包起来，提供一个路由没加载过来的显示组件
+<Susbense fallback={<h2>Loading...</h2>}>
+	<Route path="/about" component={About}></Route>
+	<Route path="/home" component={Home}></Route>
+</Susbense>
+```
+
+​		**Hooks 从16.8版本新增的特性，可以在函数组件中使用state和其他的react特性**
+
+​		函数式组件使用少的最主要原因就是没有this导致没有组件的三大特性，也没有自己的生命周期函数
+
+​		Hooks让函数式组件拥有跟类一样的功能，并且新版本中函数式组件已经成为一种主流
+
+​		**useState 给函数式组件提供了state**
+
+```react
+// Demo组件
+function Demo() {
+  // 这个语句的意思就是新建一个state是count，初始值0，新建一个setCount的方法
+	const [count, setCount] = React.useState(0) // 返回值类似于元组，第一个元素是状态，第二个是更新状态的方法
+  function add() {
+    setCount(count + 1)
+  }
+  return (
+  	<div>
+    	<h2>当前求和为 {count}</h2>
+      <button onClick={add}></button>
+    </div>
+  )
+}
+```
+
+​		**useEffect 给函数式组件提供了生命周期函数**
+
+```react
+function Demo() {
+  const [count, setCount] = React.useState(0)
+  function add() {
+    setCount(count + 1)
+  }
+  // 这个钩子可以捕获组件创建，更新等多个生命周期
+  // 重点是第二个数组参数，表示监视，如果监视的state更新回调会再被触发，空数组表示不监视，不写第二个参数表示全部监视
+  // 主要相当于componentDidMount (第二个参数空数组) / componentDidUpdate (第二个参数不写或者指定监视)
+  // return里面的函数就实现了componentDidUnmount
+	React.useEffect(() => {
+		console.log('count改变了')
+    return () => {/*这里面写componentWillUnmount的操作*/}
+  }, [count])
+}
+```
+
+​		**useRef 给函数式组件挂载ref**
+
+​		整体非常类似于使用并不多的`React.createRef()`
+
+```react
+function Demo() {
+	const myRef = React.useRef()
+	function show() {
+		console.log(myRef.value)
+	}
+	return (
+		<div>
+    	<input type="text" ref={myRef} />
+    </div>
+	)
+}
+```
+
+​	p121
+
+
+
+**今天的算法题总结 222-完全二叉树的节点个数 216-组合总和III 17-电话号码的字母组合**
+
+​	对递归的理解不够深刻，迭代使用栈操作流程顺序非常费劲
+
+
+
+### 11.10
+
+**React**
+
+​	**React补充**
+
+​		**Fragment**
+
+​		处理jsx语法外面必须有一个元素包起来干扰结构
+
+```react
+import React, {Component, Fragment} from 'react'
+return (
+	<Fragment>
+  	<Demo/>
+  </Fragment>
+)
+```
+
+​		**Context**
+
+​		适用于祖组件和后代组件之间通信
+
+```react
+// 祖级使用
+const MyContext = React.createContext()
+return (
+	<MyContext.Provider value={username}>
+  	<Demo/>
+  </MyContext.Provider>
+)
+// 子级使用
+// 类式组件
+static contextType = MyContext
+this.username // 就可以拿到username属性
+// 类式组件和函数式组件
+return (
+	<div>
+  	<h3>我是接收到的数据
+    	<MyContext.Consumer>
+      	{
+          value => {
+            return `我是${username}`
+          }
+        }
+      </MyContext.Consumer>
+    </h3>
+  </div>
+)
+```
+
+​	p123
+
+
+
+**今天的算法题总结 LC-39-组合总和**
