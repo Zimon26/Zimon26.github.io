@@ -6022,6 +6022,8 @@ componentWillUnmount()
 
 ​	componentDidUpdate(preProps, preState)里面可以接受这两个参数，都是更新之前的数据
 
+​	shouldComponentUpdate(nextProps, nextStates)同样是接受两个参数，都是新传来的数据
+
 ​	常见的钩子函数：
 
 ​		render：所有的渲染都要过一遍，重要性不言而喻
@@ -7099,4 +7101,54 @@ return (
 
 
 
-**今天的算法题总结 LC-39-组合总和**
+**今天的算法题总结 39-组合总和 40-组合总和II**
+
+​	组合总和II在去重上遇到了挺多麻烦
+
+
+
+### 11.11
+
+**React**
+
+​	**React补充**
+
+​		**PureComponent**
+
+​		在子组件跟父组件没有关系的情况下，父组件render触发(setState)也会导致子组件的render调用，这实际上是不利于性能优化的
+
+​		本质而言这是一个根深蒂固的问题，只要执行了setState()，即使不改变数据组件也会重新调用render，并且还会让子组件也render
+
+​		<u>显然更好的做法应该是只有组件的state或者props改变了才重新render</u>
+
+​		原因是我们写的组件都是继承自React.Component，而其中的shouldComponentUpdate总是返回true
+
+​		解决方法：重写shouldComponentUpdate或者<u>直接继承PureComponent</u> (这个方法更加常用)
+
+​		==PureComponent只进行数据的浅层比较，对象类在setState的时候传一个新的，解释了为什么每次setState数组经常使用扩展==
+
+​		**Props的render属性，其实就是vue的插槽**
+
+​		写组件的时候内容节点里面写的东西最后会出现在this.props.children属性里面，如果这样写除了手动调用还不能传递props
+
+```react
+// A的父组件
+render() {
+	return (
+  	<A render={(props) => <B {...props}></B>}></A>
+  )
+}
+// A组件
+render() {
+  const {props} = this.state
+  return (
+  	<div>
+    	{this.props.render(props)}
+    </div>
+  )
+}
+```
+
+​	p125
+
+**今天的算法题总结 404-左叶子之和**
