@@ -7152,3 +7152,121 @@ render() {
 ​	p125
 
 **今天的算法题总结 404-左叶子之和**
+
+
+
+### 11.12
+
+**React**
+
+​	**React补充**
+
+​		**错误边界 ErrorBoundary**
+
+​		使用命令`npm build`后项目根目录生成build文件夹，然后`serve build`即可开启一个上线环境，前提是`npm i serve -g`
+
+​		错误边界使用在容易出现错误的组件的父组件，类似于catch错误不导致整个页面报错
+
+​		错误边界要正常使用需要整体环境处于build状态
+
+```react
+export default class Parent extends Component {
+  state = {
+    // 用于标识子组件是否产生错误
+    hasError: ''
+  }
+  // Parent组件的任何子组件报错都会调用下面的函数
+	static getDerivedStateFromError(error) {
+		return {hasError:error}
+  }
+  // 下面这个函数一般用于统计错误的次数
+  componentDidCatch() {
+		console.log('渲染组件出错了')
+  }
+  render() {
+		return (
+    	<div>
+      	{this.state.hasError ? <h2>当前网络不稳定请稍后再试</h2> : <Child></Child>}
+      </div>
+    )
+  }
+}
+```
+
+​	除了react-router6部分还没看，其他已经看完，接下来继续看ReactHooks
+
+**ReactHooks**
+
+​	**useContext**
+
+​		主要是用于祖孙传递参数，方便一次跨越多个层级
+
+```react
+import React, {useState, createContext, useContext} from 'react'
+const CountContext = createContext()
+function Parent() {
+  const [count, setCount] = useState(0)
+	return (
+		<div>
+    	<CountContext.Provider value={count}>
+      	<Son></Son>
+      </CountContext.Provider>
+    </div>
+	)
+}
+function Son() {
+	const count = useContext(CountContext)
+  return (
+  	<h2>{count}</h2>
+  )
+}
+```
+
+​		实际使用中一般createContext是在App组件，举例为组件层叠关系App -> C -> E -> F
+
+```react
+// App.js
+import React from 'react'
+
+import './App.css'
+
+import ComponentC from './components/16ComponentC'
+
+export const UserContext = React.createContext('')
+
+export default const App = () => {
+  return (
+    <div className="App">
+      <UserContext.Provider value={'我是给组件C的数据'}>
+        <ComponentC />
+      </UserContext.Provider>
+    </div>
+  )
+}
+
+// componentF.jsx
+import React from 'react'
+
+import { UserContext } from '../App'
+
+function ComponentF() {
+  return (
+    <div>
+      <UserContext.Consumer>
+        {
+          (value) => (
+            <div>
+             	我是App传过来的value {value}
+            </div>
+          )
+        }
+      </UserContext.Consumer>
+    </div>
+  )
+}
+
+export default ComponentF
+```
+
+
+
