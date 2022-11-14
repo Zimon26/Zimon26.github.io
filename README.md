@@ -7270,3 +7270,142 @@ export default ComponentF
 
 
 
+### 11.13
+
+​	**ReactHooks**
+
+​		**useReducer**
+
+​		这个配合useContext使用可以类似于Redux
+
+```js
+// 基本结构
+const [value, dispatch] = useReducer((state, action) => {/*action对应state修改*/}, start)
+// value就是可以使用的值，dispatch用于分发action
+// state就是value的状态，start是初始值，state都通过action更改
+```
+
+​		下面的例子是一个最简单的useReducer演示
+
+```react
+// index.jsx
+import { useReducer } from 'react'
+
+function Count2() {
+  const [count, dispatch] = useReducer((state, action) => {
+    switch (action.type) {
+      case 'add':
+        return state + 1
+      case 'sub':
+        return state - 1
+      default:
+        return state
+    }
+  }, 0)
+  return (
+    <div>
+      <h2>Count: {count}</h2>
+      {/*dispatch分发的一般是一个action对象*/}
+      <button onClick={() => dispatch({ type: 'add' })}>Increment</button>
+      <button onClick={() => dispatch({ type: 'sub' })}>Decrement</button>
+    </div>
+  )
+}
+
+export default Count2
+```
+
+​		相对复杂的案例演示
+
+```react
+// color.jsx
+import { createContext, useReducer } from "react";
+
+export const ColorContext = createContext({})
+
+export const UPDATE_COLOR = "UPDATE_COLOR"
+
+const reducer = (state, action) => {
+  switch (action.type) {
+    case UPDATE_COLOR:
+      return action.color
+    default:
+      return state
+  }
+}
+
+export const Color = props => {
+  const [color, dispatch] = useReducer(reducer, 'blue')
+  return (
+    <ColorContext.Provider value={{ color, dispatch }}>
+      {props.children}
+    </ColorContext.Provider>
+  )
+}
+
+// ShowArea.jsx
+import { useContext } from 'react'
+import { ColorContext } from './color'
+function ShowArea() {
+  const { color } = useContext(ColorContext)
+  return (
+    <div style={{ color: color, marginBottom: '20px' }}>我是一段文字</div>
+  )
+}
+
+export default ShowArea
+
+//Buttons.jsx
+import { useContext } from "react"
+import { ColorContext, UPDATE_COLOR } from './color'
+function Buttons() {
+  const { dispatch } = useContext(ColorContext)
+  return (
+    <div>
+      <button onClick={() => dispatch({ type: UPDATE_COLOR, color: 'red' })}>红色</button>
+      <button onClick={() => dispatch({ type: UPDATE_COLOR, color: 'yellow' })}>黄色</button>
+    </div>
+  )
+}
+
+export default Buttons
+
+//Example.js
+import Buttons from "./Buttons";
+import { Color } from "./color";
+import ShowArea from "./ShowArea";
+
+function Example() {
+  return (
+    <div>
+      <Color>
+        <ShowArea></ShowArea>
+        <Buttons></Buttons>
+      </Color>
+    </div>
+  )
+}
+
+export default Example
+```
+
+​	useMemo云里雾里 p10
+
+
+
+### 11.14
+
+今天准备做一个OneThing小型项目练手React 18分钟
+
+需要学一下tailwind的css样式
+
+**TailiWind**
+
+​	tailwind是一个原子化的css库，封装的是单独的每一种样式，而bootstrap主要是封装了组件，比如现成的按钮样式
+
+​	29分钟
+
+
+
+**今天的算法题总结 513-找树左下角的值 113-路径总和II 131-分割回文串**
+
