@@ -7399,7 +7399,7 @@ export default Example
 
 需要学一下tailwind的css样式
 
-**TailiWind**
+**TailWind**
 
 ​	tailwind是一个原子化的css库，封装的是单独的每一种样式，而bootstrap主要是封装了组件，比如现成的按钮样式
 
@@ -7409,3 +7409,193 @@ export default Example
 
 **今天的算法题总结 513-找树左下角的值 113-路径总和II 131-分割回文串**
 
+
+
+### 11.15
+
+**TailWind**
+
+​	**添加组件的方法**
+
+```css
+// main.css
+@tailwind base; // 给标签统一添加属性
+
+@layer base {
+  a {display: block;}
+}
+
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .btn {
+    @apply
+		inline-block w-40 h-8 bg-green-400 text-center
+  	text-white leading-8 rounded-md hover:bg-green-600
+  }
+}
+
+@layer utilities {
+  .btn3 {
+    width: 300px;
+    height: 200px;
+    ...
+  }
+}
+```
+
+​	在tailwind中都是rem作为单位，1rem=16px
+
+​	tailwind边看文档边试手，响应式设计很方便
+
+​	**响应式设计重点**
+
+​	内置五个分辨率断点 sm md lg xl 2xl 分别对应 640 768 1024 1280 1536
+
+​	在有其他变体的情况下，响应式变体要放在最前面比如`lg:dark:hover:bg-white`
+
+
+
+OneThing小项目做完了
+
+**今天的算法题总结 93-复原IP地址**
+
+
+
+### 11.17
+
+昨天全天做页底插件部分，回顾CSS了
+
+
+
+### 11.18
+
+不知道CSS还有什么提升方法，这个真的挺麻烦的，换行出现的bug暂时先不管
+
+
+
+### 11.19
+
+虽然整体上来讲构思已经全面了很多，但是对于插件点击的变化还是做的不好，list-item组件的点击变化做的不好
+
+
+
+### 11.20
+
+displayInfo这个函数虽然整合度高但是内部还是应该拆分组件，因此直接把五种类型的组件拆开
+
+拆组件所有样式直接毁于一旦，以后大段的复制代码都挪到其他地方防止剪切板被覆盖了，估计又要搞好久了
+
+之前list-item的全部样式
+
+```less
+.list-item {
+  // display: flex;
+  width: 100%;
+  box-sizing: border-box;
+  border-bottom: 1px solid #dadce0;
+  font-size: 14px;
+
+  div {
+    display: inline-block;
+    height: 36px;
+    line-height: 36px;
+  }
+
+  .name {
+    width: 145px;
+    font-weight: 700;
+    padding-left: 10px;
+  }
+
+  .info {
+    // flex: 1;
+
+    span {
+      display: inline-block;
+    }
+
+    div {
+      box-sizing: border-box;
+      display: inline-block;
+    }
+
+    .info-container {
+      height: 100%;
+      width: 100%;
+    }
+
+    .icon-container {
+      margin-right: 5px;
+    }
+
+    .count-comment {
+      margin-right: 30px;
+    }
+
+    .type-2,
+    .type-4,
+    .type-8 {
+      // 添加边框颜色有问题
+      height: 20px;
+      line-height: 20px;
+      // padding: 0 5px;
+      text-align: center;
+      vertical-align: baseline;
+      // padding: 10px 0;
+      // margin: 10px 0;
+      border: 1px solid #dbdce0;
+      border-radius: 7px;
+    }
+
+    .type-4,
+    .type-8 {
+      min-width: 170px;
+      background-color: #81c995;
+      border-color: transparent;
+      border: 0;
+      border-radius: 4px;
+      margin-right: 8px;
+    }
+
+
+    .type-8 {
+      border: 1px solid #188038;
+    }
+
+    // .info-str {
+    //   // position: relative;
+    //   // width: 9999px;
+    //   // overflow: hidden;
+    // }
+  }
+
+  .time {
+    float: right;
+    width: 210px;
+    margin-right: 20px;
+    text-align: right;
+
+    .time-span {
+      margin-right: 5px;
+    }
+  }
+}
+```
+
+type4列表渲染中没有设置key，暂时使用index替代
+
+
+
+### 11.21
+
+今天上午基本收工了底部组件，近期需要提升使用CSS的技能，另外为后续的react项目做准备，最好再进阶使用TypeScript的能力
+
+很久没有做算法了，并且还有一个问题是js底层还没有学好
+
+
+
+**今天的算法题总结 78-子集**
+
+​	大概明天再开始一天三道算法题吧
